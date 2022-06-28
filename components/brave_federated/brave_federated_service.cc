@@ -65,9 +65,15 @@ void BraveFederatedService::Init() {
 
   eligibility_service_ = std::make_unique<EligibilityService>();
 
+<<<<<<< HEAD
   operational_patterns_ =
       std::make_unique<OperationalPatterns>(prefs_, url_loader_factory_);
   learning_service_.reset(new LearningService(data_store_service_.get(), eligibility_service_.get()));
+=======
+  learning_service_.reset(new LearningService(data_store_service_.get(), 
+      eligibility_service_.get()));
+      
+>>>>>>> 611fac4488 (Hook up learning service)
   operational_patterns_.reset(
       new OperationalPatterns(prefs_, url_loader_factory_));
 
