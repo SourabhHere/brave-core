@@ -131,6 +131,7 @@ public class BraveSyncScreensPreference extends BravePreferenceFragment
     private Button mCopyButton;
     private Button mAddDeviceButton;
     private Button mShowCategoriesButton;
+    private Button mDeleteAccountButton;
     private Button mQRCodeButton;
     private Button mCodeWordsButton;
     // Brave Sync message text view
@@ -455,6 +456,11 @@ public class BraveSyncScreensPreference extends BravePreferenceFragment
             mAddDeviceButton.setOnClickListener(this);
         }
 
+        mDeleteAccountButton = (Button) getView().findViewById(R.id.brave_sync_btn_delete_account);
+        if (null != mDeleteAccountButton) {
+            mDeleteAccountButton.setOnClickListener(this);
+        }
+
         mShowCategoriesButton =
                 (Button) getView().findViewById(R.id.brave_sync_btn_show_categories);
         if (null != mShowCategoriesButton) {
@@ -579,7 +585,7 @@ public class BraveSyncScreensPreference extends BravePreferenceFragment
                         && v != mUseCameraButton && v != mConfirmCodeWordsButton
                         && v != mMobileButton && v != mLaptopButton && v != mPasteButton
                         && v != mCopyButton && v != mShowCategoriesButton && v != mAddDeviceButton
-                        && v != mQRCodeButton && v != mCodeWordsButton
+                        && v != mDeleteAccountButton && v != mQRCodeButton && v != mCodeWordsButton
                         && v != mBraveSyncBtnAndroidSyncSettings))
             return;
 
@@ -714,6 +720,8 @@ public class BraveSyncScreensPreference extends BravePreferenceFragment
             settingsLauncher.launchSettingsActivity(getContext(), BraveManageSyncSettings.class);
         } else if (mAddDeviceButton == v) {
             setNewChainLayout();
+        } else if (mDeleteAccountButton == v) {
+            permanentlyDeleteAccount();
         }
     }
 
@@ -1129,6 +1137,52 @@ public class BraveSyncScreensPreference extends BravePreferenceFragment
                         .create();
         alertDialog.getDelegate().setHandleNativeActionModesEnabled(false);
         alertDialog.show();
+    }
+
+    private void permanentlyDeleteAccount() {
+        AlertDialog.Builder alert =
+                new AlertDialog.Builder(getActivity(), R.style.ThemeOverlay_BrowserUI_AlertDialog);
+        if (null == alert) {
+            return;
+        }
+        DialogInterface.OnClickListener onClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int button) {
+                if (button == AlertDialog.BUTTON_POSITIVE) {
+                    permanentlyDeleteAccountImpl();
+                }
+            }
+        };
+
+        AlertDialog alertDialog =
+                alert.setTitle(getResources().getString(R.string.brave_sync_delete_account_text))
+                        .setMessage(getString(R.string.brave_sync_delete_account_message))
+                        .setPositiveButton(
+                                R.string.brave_sync_delete_account_button, onClickListener)
+                        .setNegativeButton(R.string.cancel, onClickListener)
+                        .create();
+        alertDialog.getDelegate().setHandleNativeActionModesEnabled(false);
+        alertDialog.show();
+    }
+
+    private void permanentlyDeleteAccountImpl() {
+        getBraveSyncWorker().permanentlyDeleteAccount((String result) -> {
+            Log.i(TAG, "[BraveSync] permanentlyDeleteAccount result is <" + result + ">");
+            if (result == null || result.isEmpty()) {
+                Toast.makeText(getActivity().getApplicationContext(),
+                             getResources().getString(
+                                     R.string.brave_sync_delete_account_succeeded_toast),
+                             Toast.LENGTH_LONG)
+                        .show();
+            } else {
+                Toast.makeText(getActivity().getApplicationContext(),
+                             getResources().getString(
+                                     R.string.brave_sync_delete_account_failed_toast)
+                                     + " " + result,
+                             Toast.LENGTH_LONG)
+                        .show();
+            }
+        });
     }
 
     private boolean mLeaveSyncChainInProgress;
