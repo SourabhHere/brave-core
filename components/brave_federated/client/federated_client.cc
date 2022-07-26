@@ -28,26 +28,29 @@
 namespace brave_federated {
 
 FederatedClient::FederatedClient(const std::string& task_name, Model* model)
-    : task_name_(task_name), model_(model) {}
+    : task_name_(task_name), model_(model) {
+      DCHECK(model_); // TODO(lminto): DCHECK raw pointers
+    }
 
 FederatedClient::~FederatedClient() {
   Stop();
 }
 
 void FederatedClient::Start() {
-  base::SequenceBound<start> flwr_communication(
+  base::SequenceBound<start> flwr_communication( //TODO(lmint): less verbose
       base::ThreadPool::CreateSequencedTaskRunner(
           {base::MayBlock(), base::TaskPriority::BEST_EFFORT,
            base::TaskShutdownBehavior::CONTINUE_ON_SHUTDOWN}));
-  std::string server_add = "localhost:56102";
+  std::string server_add = "localhost:56102"; // TODO(lminto): move to constexpr
 
   this->communication_in_progress_ = true;
   flwr_communication.AsyncCall(&start::start_client)
-      .WithArgs(server_add, this, 536870912);
+      .WithArgs(server_add, this, 536870912); // TODO(lminto): move to constexpr
 }
 
 void FederatedClient::Stop() {
-  this->communication_in_progress_ = false;
+  DCHECK(communication_in_progress_);
+  communication_in_progress_ = false;
 }
 
 Model* FederatedClient::GetModel() {
@@ -63,21 +66,21 @@ void FederatedClient::SetTestData(std::vector<std::vector<float>> test_data) {
   test_data_ = test_data;
 }
 
-bool FederatedClient::is_communicating() {
-  return this->communication_in_progress_;
-}
+// TODO(lminto): remove this
 
 flwr::ParametersRes FederatedClient::get_parameters() {
   // Serialize
-  std::vector<float> pred_weights = this->model_->PredWeights();
-  float pred_b = this->model_->Bias();
+  const std::vector<float> pred_weights = this->model_->PredWeights();
+  const float pred_b = this->model_->Bias();
 
   std::list<std::string> tensors;
-  std::ostringstream oss1, oss2;
+
+  std::ostringstream oss1; 
   oss1.write(reinterpret_cast<const char*>(pred_weights.data()),
              pred_weights.size() * sizeof(float));
   tensors.push_back(oss1.str());
 
+  std::ostringstream oss2;
   oss2.write(reinterpret_cast<const char*>(&pred_b), sizeof(float));
   tensors.push_back(oss2.str());
 
@@ -86,10 +89,10 @@ flwr::ParametersRes FederatedClient::get_parameters() {
 }
 
 void FederatedClient::set_parameters(flwr::Parameters params) {
-  std::list<std::string> s = params.getTensors();
+  std::list<std::string> s = params.getTensors(); // TODO(lminto): remove all abbrvs
 
   if (s.empty() == 0) {
-    // Layer 1
+    // Layer 1 TODO(lminto): split function, single resp
     auto layer = s.begin();
     size_t num_bytes = (*layer).size();
     const char* weights_char = (*layer).c_str();

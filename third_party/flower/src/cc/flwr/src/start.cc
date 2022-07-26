@@ -6,9 +6,10 @@
 
 start::start() {}
 
-void start::start_client(std::string server_address,
+void start::start_client(const std::string& server_address, // TODO(lminto): Change pass by reference
                          flwr::Client* client,
                          int grpc_max_message_length) {
+  DCHECK(client);
   // Set channel parameters
   grpc::ChannelArguments args;
   args.SetMaxReceiveMessageSize(grpc_max_message_length);
@@ -20,7 +21,7 @@ void start::start_client(std::string server_address,
   while (client->is_communicating() && is_connected) {
     // Establish an insecure gRPC connection to a gRPC server
     std::shared_ptr<Channel> channel = grpc::CreateCustomChannel(
-        server_address, grpc::InsecureChannelCredentials(), args);
+        server_address, grpc::InsecureChannelCredentials(), args); 
     // std::cout << "Created channel on " << server_address << std::endl;
     // Create stub
     std::unique_ptr<FlowerService::Stub> stub_ =
@@ -30,7 +31,7 @@ void start::start_client(std::string server_address,
     std::shared_ptr<ClientReaderWriter<ClientMessage, ServerMessage>>
         reader_writer(stub_->Join(&context));
     ServerMessage sm;
-    while (reader_writer->Read(&sm)) {
+    while (reader_writer->Read(&sm)) { // TODO(lminto): Two objects - read and write
       std::tuple<ClientMessage, int, bool> receive = handle(client, sm);
       sleep_duration = std::get<1>(receive);
       reader_writer->Write(std::get<0>(receive));

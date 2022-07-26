@@ -17,7 +17,7 @@
 #ifndef BRAVE_THIRD_PARTY_FLOWER_SRC_CC_FLWR_INCLUDE_START_H_
 #define BRAVE_THIRD_PARTY_FLOWER_SRC_CC_FLWR_INCLUDE_START_H_
 
-#include <grpcpp/grpcpp.h>
+#include <grpcpp/grpcpp.h> // TODO(lminto): use chromium implementation (bidirection_stream)
 #include <string>
 
 #include "brave/third_party/flower/src/cc/flwr/include/client.h"

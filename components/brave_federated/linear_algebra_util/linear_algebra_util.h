@@ -10,6 +10,9 @@
 
 namespace brave_federated {
 
+using FeatureList = std::vector<float>;
+using SampleList = std::vector<FeatureList>;
+
 class LinearAlgebraUtil {
  public:
   static std::vector<float> SubtractVector(std::vector<float> v1,
