@@ -209,7 +209,7 @@ size_t SyntheticDataset::size() {
   return this->data_points_.size();
 }
 
-int SyntheticDataset::get_features_count() {
+int SyntheticDataset::CountFeatures() {
   return this->data_points_[0].size() - 1;
 }
 
@@ -225,23 +225,6 @@ SyntheticDataset SyntheticDataset::SeparateTestData(int num_training) {
 
   this->data_points_ = split_lo;
   return SyntheticDataset(split_hi);
-}
-
-void SyntheticDataset::DumpToCSV(std::string prefix) {
-  std::fstream csv_data;
-
-  std::string csv_name =
-      prefix + std::to_string(base::Time::Now().time_since_epoch().count()) +
-      ".csv";
-  csv_data.open(csv_name, std::ios::out);
-
-  for (size_t i = 0; i < data_points_.size(); i++) {
-    for (size_t j = 0; j < data_points_[i].size(); j++) {
-      csv_data << data_points_[i][j] << ",";
-    }
-    csv_data << "\n";
-  }
-  csv_data.close();
 }
 
 float SyntheticDataset::Softmax(float z) {

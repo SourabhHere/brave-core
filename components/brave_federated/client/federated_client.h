@@ -16,6 +16,10 @@ namespace brave_federated {
 
 class Model;
 
+using Weights = std::vector<float>;
+using Sample = std::vector<float>;
+using DataSet = std::vector<Sample>;
+
 class FederatedClient final : public flwr::Client {
  public:
   FederatedClient(const std::string& task_name, Model* model);
@@ -26,25 +30,25 @@ class FederatedClient final : public flwr::Client {
   void Start();
   void Stop();
 
-  void SetTrainingData(std::vector<std::vector<float>> training_data);
-  void SetTestData(std::vector<std::vector<float>> test_data);
+  void SetTrainingData(DataSet training_data);
+  void SetTestData(DataSet test_data);
 
-  void set_parameters(flwr::Parameters params); // TODO(lminto): not snakecase
-  bool is_communicating() override {
+  void SetParameters(flwr::Parameters parameters);
+  bool IsCommunicating() override {
     return is_communicating_;
   } 
-  flwr::ParametersRes get_parameters() override;
-  flwr::PropertiesRes get_properties(flwr::PropertiesIns ins) override;
-  flwr::EvaluateRes evaluate(flwr::EvaluateIns ins) override;
-  flwr::FitRes fit(flwr::FitIns ins) override;
+  flwr::ParametersRes GetParameters() override;
+  flwr::PropertiesRes GetProperties(flwr::PropertiesIns instructions) override;
+  flwr::EvaluateRes Evaluate(flwr::EvaluateIns instructions) override;
+  flwr::FitRes Fit(flwr::FitIns instructions) override;
 
  private:
   bool is_communicating_ = false;
   std::string client_id_;
   std::string task_name_;
-  Model* model_ = nullptr; //TODO(lminto): rawptr
-  std::vector<std::vector<float>> training_data_; // TODO(lminto): alias
-  std::vector<std::vector<float>> test_data_;
+  raw_ptr<Model> model_ = nullptr;
+  DataSet training_data_; // TODO(lminto): alias
+  DataSet test_data_;
 };
 
 }  // namespace brave_federated

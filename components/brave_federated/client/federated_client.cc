@@ -37,20 +37,20 @@ FederatedClient::~FederatedClient() {
 }
 
 void FederatedClient::Start() {
-  base::SequenceBound<start> flwr_communication( //TODO(lmint): less verbose
+  base::SequenceBound<start> flower(
       base::ThreadPool::CreateSequencedTaskRunner(
           {base::MayBlock(), base::TaskPriority::BEST_EFFORT,
            base::TaskShutdownBehavior::CONTINUE_ON_SHUTDOWN}));
   std::string server_add = "localhost:56102"; // TODO(lminto): move to constexpr
 
-  this->communication_in_progress_ = true;
-  flwr_communication.AsyncCall(&start::start_client)
+  this->is_communicating_ = true;
+  flower.AsyncCall(&start::start_client)
       .WithArgs(server_add, this, 536870912); // TODO(lminto): move to constexpr
 }
 
 void FederatedClient::Stop() {
-  DCHECK(communication_in_progress_);
-  communication_in_progress_ = false;
+  DCHECK(is_communicating_);
+  is_communicating_ = false;
 }
 
 Model* FederatedClient::GetModel() {
@@ -58,99 +58,97 @@ Model* FederatedClient::GetModel() {
 }
 
 void FederatedClient::SetTrainingData(
-    std::vector<std::vector<float>> training_data) {
+    DataSet training_data) {
   training_data_ = training_data;
 }
 
-void FederatedClient::SetTestData(std::vector<std::vector<float>> test_data) {
+void FederatedClient::SetTestData(DataSet test_data) {
   test_data_ = test_data;
 }
 
-// TODO(lminto): remove this
-
-flwr::ParametersRes FederatedClient::get_parameters() {
+flwr::ParametersRes FederatedClient::GetParameters() {
   // Serialize
-  const std::vector<float> pred_weights = this->model_->PredWeights();
-  const float pred_b = this->model_->Bias();
+  const Weights prediction_weights = this->model_->PredWeights();
+  const float prediction_bias = this->model_->Bias();
 
   std::list<std::string> tensors;
 
-  std::ostringstream oss1; 
-  oss1.write(reinterpret_cast<const char*>(pred_weights.data()),
-             pred_weights.size() * sizeof(float));
+  std::ostringstream oss1;
+  oss1.write(reinterpret_cast<const char*>(prediction_weights.data()),
+             prediction_weights.size() * sizeof(float));
   tensors.push_back(oss1.str());
 
   std::ostringstream oss2;
-  oss2.write(reinterpret_cast<const char*>(&pred_b), sizeof(float));
+  oss2.write(reinterpret_cast<const char*>(&prediction_bias), sizeof(float));
   tensors.push_back(oss2.str());
 
-  std::string tensor_str = "cpp_float";
-  return flwr::ParametersRes(flwr::Parameters(tensors, tensor_str));
+  std::string tensor_string = "cpp_float";
+  return flwr::ParametersRes(flwr::Parameters(tensors, tensor_string));
 }
 
-void FederatedClient::set_parameters(flwr::Parameters params) {
-  std::list<std::string> s = params.getTensors(); // TODO(lminto): remove all abbrvs
+const float* GetLayerWeightsFromString(std::string layer_string) {
+  size_t num_bytes = (*layer_string).size();
+  const char* weights_char = (*layer_string).c_str();
+  return reinterpret_cast<const float*>(weights_char);
+}
 
-  if (s.empty() == 0) {
-    // Layer 1 TODO(lminto): split function, single resp
-    auto layer = s.begin();
-    size_t num_bytes = (*layer).size();
-    const char* weights_char = (*layer).c_str();
-    const float* weights_float = reinterpret_cast<const float*>(weights_char);
-    std::vector<float> weights(weights_float,
+void FederatedClient::SetParameters(flwr::Parameters parameters) {
+  std::list<std::string> tensor_string = parameters.getTensors();
+
+  if (tensor_string.empty() == 0) {
+    // Layer 1
+    std::string layer = tensor_string.begin();
+    auto weights_float = GetLayerWeightsFromString(layer);
+    Weights weights(weights_float,
                                weights_float + num_bytes / sizeof(float));
     this->model_->SetPredWeights(weights);
 
     // Layer 2 = Bias
-    auto layer_2 = std::next(layer, 1);
-    num_bytes = (*layer_2).size();
-    const char* bias_char = (*layer_2).c_str();
-    const float* bias_float = reinterpret_cast<const float*>(bias_char);
+    auto bias_float = GetLayerWeightsFromString(std::next(layer, 1));
     this->model_->SetBias(bias_float[0]);
   }
 }
 
-flwr::PropertiesRes FederatedClient::get_properties(flwr::PropertiesIns ins) {
-  flwr::PropertiesRes p;
-  p.setPropertiesRes(static_cast<flwr::Properties>(ins.getPropertiesIns()));
-  return p;
+flwr::PropertiesRes FederatedClient::GetProperties(flwr::PropertiesIns instructions) {
+  flwr::PropertiesRes properties;
+  properties.setPropertiesRes(static_cast<flwr::Properties>(instructions.getPropertiesIns()));
+  return properties;
 }
 
-flwr::FitRes FederatedClient::fit(flwr::FitIns ins) {
-  auto config = ins.getConfig();
-  flwr::FitRes resp;
-  flwr::Parameters p = ins.getParameters();
-  this->set_parameters(p);
+flwr::FitRes FederatedClient::Fit(flwr::FitIns instructions) {
+  auto config = instructions.getConfig();
+  flwr::FitRes response;
+  flwr::Parameters parameters = instructions.getParameters();
+  this->set_parameters(parameters);
 
   std::tuple<size_t, float, float> result =
       this->model_->Train(this->training_data_);
 
-  resp.setParameters(this->get_parameters().getParameters());
-  resp.setNum_example(std::get<0>(result));
+  response.setParameters(this->get_parameters().getParameters());
+  response.setNum_example(std::get<0>(result));
 
-  return resp;
+  return response;
 }
 
-flwr::EvaluateRes FederatedClient::evaluate(flwr::EvaluateIns ins) {
-  flwr::EvaluateRes resp;
-  flwr::Parameters p = ins.getParameters();
-  this->set_parameters(p);
+flwr::EvaluateRes FederatedClient::Evaluate(flwr::EvaluateIns instructions) {
+  flwr::EvaluateRes response;
+  flwr::Parameters parameters = instructions.getParameters();
+  this->set_parameters(parameters);
 
   // Evaluation returns a number_of_examples, a loss and an "accuracy"
   std::tuple<size_t, float, float> result =
       this->model_->Evaluate(this->test_data_);
 
-  resp.setNum_example(std::get<0>(result));
-  resp.setLoss(std::get<1>(result));
+  response.setNum_example(std::get<0>(result));
+  response.setLoss(std::get<1>(result));
 
   flwr::Scalar accuracy = flwr::Scalar();
   accuracy.setDouble(static_cast<double>(std::get<2>(result)));
   std::map<std::string, flwr::Scalar> metric = {
       {"accuracy", accuracy},
   };
-  resp.setMetrics(metric);
-  auto m = resp.getMetrics();
-  return resp;
+  response.setMetrics(metric);
+  return response;
 }
 
 }  // namespace brave_federated

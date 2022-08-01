@@ -26,11 +26,10 @@ class SyntheticDataset {
   ~SyntheticDataset();
 
   size_t size();
-  int get_features_count();
+  int CountFeatures();
   std::vector<std::vector<float>> GetDataPoints();
 
   SyntheticDataset SeparateTestData(int num_training);
-  void DumpToCSV(std::string prefix);
 
  private:
   float Softmax(float z);
