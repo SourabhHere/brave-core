@@ -10,6 +10,8 @@
 #include <tuple>
 #include <vector>
 
+#include "brave/components/brave_federated/linear_algebra_util/linear_algebra_util.h"
+
 namespace brave_federated {
 
 class Model {
@@ -18,17 +20,16 @@ class Model {
 
   ~Model();
 
-  std::vector<float> Predict(std::vector<std::vector<float>> X);
+  std::vector<float> Predict(DataSet X);
 
   std::tuple<size_t, float, float> Train(
-      const std::vector<std::vector<float>>& dataset);
+      const DataSet& dataset);
 
   std::tuple<size_t, float, float> Evaluate(
-      const std::vector<std::vector<float>>& test_dataset);
+      const DataSet& test_dataset);
 
-  std::vector<float> PredWeights();
-
-  void SetPredWeights(std::vector<float> new_pred_weights);
+  Weights GetPredWeights();
+  void SetPredWeights(Weights new_prediction_weights);
 
   float Bias();
 
@@ -42,10 +43,10 @@ class Model {
   float learning_rate_;
   float threshold_;
 
-  std::vector<float> pred_weights_;
-  float pred_b_;
+  Weights prediction_weights_;
+  float prediction_bias_;
 
-  float ComputeNLL(std::vector<float> true_y, std::vector<float> pred);
+  float ComputeNLL(std::vector<float> true_labels, std::vector<float> predictions);
 
   float Activation(float z);
 };

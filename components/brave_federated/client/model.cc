@@ -8,10 +8,6 @@
 #include <algorithm>
 #include <cmath>
 #include <random>
-#include <tuple>
-#include <vector>
-
-#include "brave/components/brave_federated/linear_algebra_util/linear_algebra_util.h"
 
 namespace brave_federated {
 
@@ -19,54 +15,54 @@ Model::Model(int num_iterations, float learning_rate, int num_params)
     : num_iterations_(num_iterations), learning_rate_(learning_rate) {
   std::random_device rd;
   std::mt19937 mt(rd());
-  std::uniform_int_distribution<> distr(-10.0, 10.0);
+  std::uniform_int_distribution<> distribution(-10.0, 10.0);
   for (int i = 0; i < num_params; i++) {
-    this->pred_weights_.push_back(distr(mt));
+    prediction_weights_.push_back(distribution(mt));
   }
 
-  this->pred_b_ = distr(mt);
-  this->batch_size_ = 64;
-  this->threshold_ = 0.5;
+  prediction_bias_ = distribution(mt);
+  batch_size_ = 64;
+  threshold_ = 0.5;
 }
 
 Model::~Model() {}
 
-std::vector<float> Model::PredWeights() {
-  std::vector<float> copy_of_weights(this->pred_weights_);
+Weights Model::GetPredWeights() {
+  std::vector<float> copy_of_weights(prediction_weights_);
   return copy_of_weights;
 }
 
-void Model::SetPredWeights(std::vector<float> new_weights) {
-  this->pred_weights_.assign(new_weights.begin(), new_weights.end());
+void Model::SetPredWeights(Weights new_weights) {
+  prediction_weights_.assign(new_weights.begin(), new_weights.end());
 }
 
 float Model::Bias() {
-  return this->pred_b_;
+  return prediction_bias_;
 }
 void Model::SetBias(float new_bias) {
-  this->pred_b_ = new_bias;
+  prediction_bias_ = new_bias;
 }
 
 size_t Model::ModelSize() {
-  return this->pred_weights_.size();
+  return prediction_weights_.size();
 }
 
-std::vector<float> Model::Predict(std::vector<std::vector<float>> X) {
+std::vector<float> Model::Predict(DataSet X) {
   std::vector<float> prediction(X.size(), 0.0);
   for (size_t i = 0; i < X.size(); i++) {
     float z = 0.0;
     for (size_t j = 0; j < X[i].size(); j++) {
-      z += this->pred_weights_[j] * X[i][j];
+      z += prediction_weights_[j] * X[i][j];
     }
-    z += this->pred_b_;
+    z += prediction_bias_;
 
-    prediction[i] = this->Activation(z);
+    prediction[i] = Activation(z);
   }
   return prediction;
 }
 
 std::tuple<size_t, float, float> Model::Train(
-    const std::vector<std::vector<float>>& dataset) {
+    const DataSet& dataset) {
   int features = dataset[0].size() - 1;
 
   std::vector<float> data_indices(dataset.size());
@@ -74,28 +70,27 @@ std::tuple<size_t, float, float> Model::Train(
     data_indices.push_back(i);
   }
 
-  std::vector<float> dW(features);
+  Weights dW(features);
   std::vector<float> err(batch_size_, 10000);
-  std::vector<float> pW(features);
+  Weights pW(features);
   float training_error = 0.0;
   for (int iteration = 0; iteration < num_iterations_; iteration++) {
     std::random_device rd;
     std::mt19937 g(rd());
     std::shuffle(data_indices.begin(), data_indices.end(), g);
 
-    std::vector<std::vector<float>> X(this->batch_size_,
-                                      std::vector<float>(features));
-    std::vector<float> y(this->batch_size_);
+    DataSet X(batch_size_, std::vector<float>(features));
+    std::vector<float> y(batch_size_);
 
-    for (int i = 0; i < this->batch_size_; i++) {
+    for (int i = 0; i < batch_size_; i++) {
       std::vector<float> point = dataset[data_indices[i]];
       y[i] = point.back();
       point.pop_back();
       X[i] = point;
     }
 
-    pW = this->pred_weights_;
-    float pB = this->pred_b_;
+    pW = prediction_weights_;
+    float pB = prediction_bias_;
     float dB;
 
     std::vector<float> pred = Predict(X);
@@ -105,17 +100,17 @@ std::tuple<size_t, float, float> Model::Train(
     dW = LinearAlgebraUtil::MultiplyMatrixVector(
         LinearAlgebraUtil::TransposeVector(X), err);
     dW =
-        LinearAlgebraUtil::MultiplyVectorScalar(dW, (-2.0 / this->batch_size_));
+        LinearAlgebraUtil::MultiplyVectorScalar(dW, (-2.0 / batch_size_));
 
-    dB = (-2.0 / this->batch_size_) *
+    dB = (-2.0 / batch_size_) *
          std::accumulate(err.begin(), err.end(), 0.0);
 
-    this->pred_weights_ = LinearAlgebraUtil::SubtractVector(
+    prediction_weights_ = LinearAlgebraUtil::SubtractVector(
         pW, LinearAlgebraUtil::MultiplyVectorScalar(dW, learning_rate_));
-    this->pred_b_ = pB - learning_rate_ * dB;
+    prediction_bias_ = pB - learning_rate_ * dB;
 
     if (iteration % 250 == 0) {
-      training_error = this->ComputeNLL(y, Predict(X));
+      training_error = ComputeNLL(y, Predict(X));
     }
   }
 
@@ -123,7 +118,7 @@ std::tuple<size_t, float, float> Model::Train(
   return std::make_tuple(dataset.size(), training_error, accuracy);
 }
 
-float Model::ComputeNLL(std::vector<float> true_y, std::vector<float> pred) {
+float Model::ComputeNLL(std::vector<float> true_labels, std::vector<float> predictions) {
   float error = 0.0;
 
   for (size_t i = 0; i < true_y.size(); i++) {
@@ -139,9 +134,9 @@ float Model::Activation(float z) {
 }
 
 std::tuple<size_t, float, float> Model::Evaluate(
-    const std::vector<std::vector<float>>& test_dataset) {
+    const DataSet& test_dataset) {
   int num_features = test_dataset[0].size();
-  std::vector<std::vector<float>> X(test_dataset.size(),
+  DataSet X(test_dataset.size(),
                                     std::vector<float>(num_features));
   std::vector<float> y(test_dataset.size());
 
@@ -155,7 +150,7 @@ std::tuple<size_t, float, float> Model::Evaluate(
   std::vector<float> predicted_value = Predict(X);
   int total_correct = 0;
   for (size_t i = 0; i < test_dataset.size(); i++) {
-    if (predicted_value[i] >= this->threshold_) {
+    if (predicted_value[i] >= threshold_) {
       predicted_value[i] = 1.0;
     } else {
       predicted_value[i] = 0.0;

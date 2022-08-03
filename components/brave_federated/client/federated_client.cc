@@ -19,7 +19,6 @@
 #include "base/threading/sequenced_task_runner_handle.h"
 
 #include "brave/components/brave_federated/client/model.h"
-#include "brave/components/brave_federated/linear_algebra_util/linear_algebra_util.h"
 #include "brave/components/brave_federated/synthetic_dataset/synthetic_dataset.h"
 
 #include "brave/third_party/flower/src/cc/flwr/include/start.h"
@@ -43,7 +42,7 @@ void FederatedClient::Start() {
            base::TaskShutdownBehavior::CONTINUE_ON_SHUTDOWN}));
   std::string server_add = "localhost:56102"; // TODO(lminto): move to constexpr
 
-  this->is_communicating_ = true;
+  is_communicating_ = true;
   flower.AsyncCall(&start::start_client)
       .WithArgs(server_add, this, 536870912); // TODO(lminto): move to constexpr
 }
@@ -68,8 +67,8 @@ void FederatedClient::SetTestData(DataSet test_data) {
 
 flwr::ParametersRes FederatedClient::GetParameters() {
   // Serialize
-  const Weights prediction_weights = this->model_->PredWeights();
-  const float prediction_bias = this->model_->Bias();
+  const Weights prediction_weights = model_->GetPredWeights();
+  const float prediction_bias = model_->Bias();
 
   std::list<std::string> tensors;
 
@@ -101,11 +100,11 @@ void FederatedClient::SetParameters(flwr::Parameters parameters) {
     auto weights_float = GetLayerWeightsFromString(layer);
     Weights weights(weights_float,
                                weights_float + num_bytes / sizeof(float));
-    this->model_->SetPredWeights(weights);
+    model_->SetPredWeights(weights);
 
     // Layer 2 = Bias
     auto bias_float = GetLayerWeightsFromString(std::next(layer, 1));
-    this->model_->SetBias(bias_float[0]);
+    model_->SetBias(bias_float[0]);
   }
 }
 
@@ -119,12 +118,12 @@ flwr::FitRes FederatedClient::Fit(flwr::FitIns instructions) {
   auto config = instructions.getConfig();
   flwr::FitRes response;
   flwr::Parameters parameters = instructions.getParameters();
-  this->set_parameters(parameters);
+  set_parameters(parameters);
 
   std::tuple<size_t, float, float> result =
-      this->model_->Train(this->training_data_);
+      model_->Train(training_data_);
 
-  response.setParameters(this->get_parameters().getParameters());
+  response.setParameters(get_parameters().getParameters());
   response.setNum_example(std::get<0>(result));
 
   return response;
@@ -133,11 +132,11 @@ flwr::FitRes FederatedClient::Fit(flwr::FitIns instructions) {
 flwr::EvaluateRes FederatedClient::Evaluate(flwr::EvaluateIns instructions) {
   flwr::EvaluateRes response;
   flwr::Parameters parameters = instructions.getParameters();
-  this->set_parameters(parameters);
+  set_parameters(parameters);
 
   // Evaluation returns a number_of_examples, a loss and an "accuracy"
   std::tuple<size_t, float, float> result =
-      this->model_->Evaluate(this->test_data_);
+      model_->Evaluate(test_data_);
 
   response.setNum_example(std::get<0>(result));
   response.setLoss(std::get<1>(result));

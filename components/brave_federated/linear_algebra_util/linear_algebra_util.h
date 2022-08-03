@@ -10,8 +10,9 @@
 
 namespace brave_federated {
 
-using FeatureList = std::vector<float>;
-using SampleList = std::vector<FeatureList>;
+using Weights = std::vector<float>;
+using Sample = std::vector<float>;
+using DataSet = std::vector<Sample>;
 
 class LinearAlgebraUtil {
  public:

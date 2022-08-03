@@ -11,14 +11,11 @@
 #include <vector>
 
 #include "brave/third_party/flower/src/cc/flwr/include/client.h"
+#include "brave/components/brave_federated/linear_algebra_util/linear_algebra_util.h"
 
 namespace brave_federated {
 
 class Model;
-
-using Weights = std::vector<float>;
-using Sample = std::vector<float>;
-using DataSet = std::vector<Sample>;
 
 class FederatedClient final : public flwr::Client {
  public:
@@ -47,7 +44,7 @@ class FederatedClient final : public flwr::Client {
   std::string client_id_;
   std::string task_name_;
   raw_ptr<Model> model_ = nullptr;
-  DataSet training_data_; // TODO(lminto): alias
+  DataSet training_data_;
   DataSet test_data_;
 };
 

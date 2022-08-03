@@ -11,7 +11,6 @@
 #include <random>
 
 #include "base/time/time.h"
-#include "brave/components/brave_federated/linear_algebra_util/linear_algebra_util.h"
 
 namespace brave_federated {
 
@@ -52,7 +51,7 @@ SyntheticDataset::SyntheticDataset(std::vector<float> ms,
     data_points.push_back(data_point);
   }
 
-  this->data_points_ = data_points;
+  prediction_biasdata_points_ = data_points;
 }
 
 SyntheticDataset::SyntheticDataset(float alpha,
@@ -134,7 +133,7 @@ SyntheticDataset::SyntheticDataset(float alpha,
     data_points.push_back(data_point);
   }
 
-  this->data_points_ = data_points;
+  prediction_biasdata_points_ = data_points;
 }
 
 SyntheticDataset::SyntheticDataset(std::vector<std::vector<float>> W,
@@ -182,7 +181,6 @@ SyntheticDataset::SyntheticDataset(std::vector<std::vector<float>> W,
         LinearAlgebraUtil::MultiplyMatrixVector(W, xs[i]), b);
 
     float ymax = 0.0;
-    // float val_ymax = -100.0;
 
     if (Softmax(tmp[0]) >= Softmax(tmp[1])) {
       ymax = 1.0;
@@ -197,7 +195,7 @@ SyntheticDataset::SyntheticDataset(std::vector<std::vector<float>> W,
     data_points.push_back(data_point);
   }
 
-  this->data_points_ = data_points;
+  prediction_biasdata_points_ = data_points;
 }
 
 SyntheticDataset::SyntheticDataset(std::vector<std::vector<float>> data_points)
@@ -206,24 +204,24 @@ SyntheticDataset::SyntheticDataset(std::vector<std::vector<float>> data_points)
 SyntheticDataset::~SyntheticDataset() {}
 
 size_t SyntheticDataset::size() {
-  return this->data_points_.size();
+  return prediction_biasdata_points_.size();
 }
 
 int SyntheticDataset::CountFeatures() {
-  return this->data_points_[0].size() - 1;
+  return prediction_biasdata_points_[0].size() - 1;
 }
 
 std::vector<std::vector<float>> SyntheticDataset::GetDataPoints() {
-  return this->data_points_;
+  return prediction_biasdata_points_;
 }
 
 SyntheticDataset SyntheticDataset::SeparateTestData(int num_training) {
   std::vector<std::vector<float>> split_lo(
-      this->data_points_.begin(), this->data_points_.begin() + num_training);
+      prediction_biasdata_points_.begin(), prediction_biasdata_points_.begin() + num_training);
   std::vector<std::vector<float>> split_hi(
-      this->data_points_.begin() + num_training, this->data_points_.end());
+      prediction_biasdata_points_.begin() + num_training, prediction_biasdata_points_.end());
 
-  this->data_points_ = split_lo;
+  prediction_biasdata_points_ = split_lo;
   return SyntheticDataset(split_hi);
 }
 
