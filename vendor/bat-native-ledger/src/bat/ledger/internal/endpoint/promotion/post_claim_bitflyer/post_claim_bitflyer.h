@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include "bat/ledger/ledger.h"
+#include "bat/ledger/internal/endpoint/connect/connect.h"
 
 // POST /v3/wallet/bitflyer/{payment_id}/claim
 //
@@ -35,30 +35,20 @@ class LedgerImpl;
 namespace endpoint {
 namespace promotion {
 
-using PostClaimBitflyerCallback =
-    std::function<void(const type::Result result)>;
-
-class PostClaimBitflyer {
+class ClaimBitflyer : public Connect {
  public:
-  explicit PostClaimBitflyer(LedgerImpl* ledger);
-  ~PostClaimBitflyer();
+  explicit ClaimBitflyer(LedgerImpl* ledger, const std::string& linking_info);
 
-  void Request(const std::string& linking_info,
-               PostClaimBitflyerCallback callback);
+  ~ClaimBitflyer() override;    
 
  private:
-  std::string GetUrl();
+  std::string Url() override;
+  std::string Content() override;
+  std::vector<std::string> Headers() override;
 
   std::string GeneratePayload(const std::string& linking_info);
 
-  type::Result ProcessResponse(const type::UrlResponse& response) const;
-
-  type::Result ParseBody(const std::string& body) const;
-
-  void OnRequest(const type::UrlResponse& response,
-                 PostClaimBitflyerCallback callback);
-
-  LedgerImpl* ledger_;  // NOT OWNED
+  std::string linking_info_;
 };
 
 }  // namespace promotion
