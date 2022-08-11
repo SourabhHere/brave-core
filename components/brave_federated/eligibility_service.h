@@ -31,7 +31,7 @@ class EligibilityService
   void AddObserver(Observer* observer);
   void RemoveObserver(Observer* observer);
 
-  bool IsEligible() const; // TODO(lminto): change elsewhere
+  bool IsEligible() const;
 
  private:
   void MaybeChangeEligibility();

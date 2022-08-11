@@ -33,11 +33,11 @@ class Client {
    *             The current local model parameters
    *
    */
-  virtual ParametersRes get_parameters() = 0;
+  virtual ParametersRes GetParameters() = 0;
 
-  virtual PropertiesRes get_properties(PropertiesIns ins) = 0;
+  virtual PropertiesRes GetProperties(PropertiesIns ins) = 0;
 
-  virtual bool is_communicating() = 0;
+  virtual bool IsCommunicating() = 0;
   /**
    *
    * @brief Refine the provided weights using the locally held dataset
@@ -49,7 +49,7 @@ class Client {
    *             The training result containing updated parameters and other
    * details such as the number of local training examples used for training.
    */
-  virtual FitRes fit(FitIns ins) = 0;
+  virtual FitRes Fit(FitIns ins) = 0;
 
   /**
    *
@@ -63,7 +63,7 @@ class Client {
    * and other details such as the number of local data examples used for
    *             evaluation.
    */
-  virtual EvaluateRes evaluate(EvaluateIns ins) = 0;
+  virtual EvaluateRes Evaluate(EvaluateIns ins) = 0;
 };
 
 }  // namespace flwr

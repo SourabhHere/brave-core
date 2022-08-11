@@ -17,11 +17,11 @@
 #ifndef BRAVE_THIRD_PARTY_FLOWER_SRC_CC_FLWR_INCLUDE_START_H_
 #define BRAVE_THIRD_PARTY_FLOWER_SRC_CC_FLWR_INCLUDE_START_H_
 
-#include <grpcpp/grpcpp.h> // TODO(lminto): use chromium implementation (bidirection_stream)
 #include <string>
 
 #include "brave/third_party/flower/src/cc/flwr/include/client.h"
 #include "brave/third_party/flower/src/cc/flwr/include/message_handler.h"
+#include "components/grpc_support/bidirectional_stream.h"
 
 using flower::transport::ClientMessage;
 using flower::transport::FlowerService;
@@ -33,10 +33,11 @@ using grpc::Status;
 
 #define GRPC_MAX_MESSAGE_LENGTH 536870912  //  == 512 * 1024 * 1024
 
+namespace flower {
+
 /**
  * @brief Start a C++ Flower Client which connects to a gRPC server
- * @param  server_address
- *                        The IPv6 address of the server. If the Flower server
+ * @param  server_address The IPv6 address of the server. If the Flower server
  * runs on the same machine on port 8080, then `server_address` would be
  * `"[::]:8080"`.
  *
@@ -55,13 +56,36 @@ using grpc::Status;
  *
  */
 
-class start {
- public:
-  start();
+class ClientRunner final: public grpc_support::BidirectionalStream::Delegate {
 
-  void start_client(std::string server_address,
-                    flwr::Client* client,
-                    int grpc_max_message_length = GRPC_MAX_MESSAGE_LENGTH);
+public:
+ ClientRunner(const std::string& server_endpoint,
+                      flwr::Client* client,
+                      int grpc_max_message_length);
+ ~ClientRunner();
+ ClientRunner(const ClientRunner&) = delete;
+ ClientRunner& operator=(const ClientRunner&) = delete;
+
+ void Start();
+ 
+ // Delegate implementation
+ void OnStreamReady();
+ void OnHeadersReceived(
+    const spdy::Http2HeaderBlock& response_headers,
+    const char* negotiated_protocol);
+ void OnDataRead(char* data, int size);
+ void OnDataSent(const char* data);
+ void OnTrailersReceived(const spdy::Http2HeaderBlock& trailers);
+ void OnSucceeded();
+ void OnFailed(int error);
+ void OnCanceled();
+
+private:
+ grpc_support::BidirectionalStream* bidirectional_stream_;
+ flwr::Client* federated_client_;
+ const std::string& server_endpoint_;
 };
+
+} //  namespace flower
 
 #endif  // BRAVE_THIRD_PARTY_FLOWER_SRC_CC_FLWR_INCLUDE_START_H_

@@ -51,7 +51,7 @@ SyntheticDataset::SyntheticDataset(std::vector<float> ms,
     data_points.push_back(data_point);
   }
 
-  prediction_biasdata_points_ = data_points;
+  data_points_ = data_points;
 }
 
 SyntheticDataset::SyntheticDataset(float alpha,
@@ -63,7 +63,7 @@ SyntheticDataset::SyntheticDataset(float alpha,
   std::uniform_int_distribution<> distrtime(0, 144);
 
   std::default_random_engine generator;
-  generator.seed(base::Time::Now().time_since_epoch().count());
+  generator.seed(base::Time::Now().ToInternalValue());
 
   std::normal_distribution<float> normal_zero_alpha(0.0, alpha);
   std::normal_distribution<float> normal_zero_beta(0.0, beta);
@@ -133,7 +133,7 @@ SyntheticDataset::SyntheticDataset(float alpha,
     data_points.push_back(data_point);
   }
 
-  prediction_biasdata_points_ = data_points;
+  data_points_ = data_points;
 }
 
 SyntheticDataset::SyntheticDataset(std::vector<std::vector<float>> W,
@@ -145,7 +145,7 @@ SyntheticDataset::SyntheticDataset(std::vector<std::vector<float>> W,
   std::uniform_int_distribution<> distrtime(0, 144);
 
   std::default_random_engine generator;
-  generator.seed(base::Time::Now().time_since_epoch().count());
+  generator.seed(base::Time::Now().ToInternalValue());
 
   std::vector<float> cov_x(num_features, 0.0);
   for (int j = 0; j < num_features; j++) {
@@ -195,7 +195,7 @@ SyntheticDataset::SyntheticDataset(std::vector<std::vector<float>> W,
     data_points.push_back(data_point);
   }
 
-  prediction_biasdata_points_ = data_points;
+  data_points_ = data_points;
 }
 
 SyntheticDataset::SyntheticDataset(std::vector<std::vector<float>> data_points)
@@ -204,24 +204,24 @@ SyntheticDataset::SyntheticDataset(std::vector<std::vector<float>> data_points)
 SyntheticDataset::~SyntheticDataset() {}
 
 size_t SyntheticDataset::size() {
-  return prediction_biasdata_points_.size();
+  return data_points_.size();
 }
 
 int SyntheticDataset::CountFeatures() {
-  return prediction_biasdata_points_[0].size() - 1;
+  return data_points_[0].size() - 1;
 }
 
 std::vector<std::vector<float>> SyntheticDataset::GetDataPoints() {
-  return prediction_biasdata_points_;
+  return data_points_;
 }
 
 SyntheticDataset SyntheticDataset::SeparateTestData(int num_training) {
   std::vector<std::vector<float>> split_lo(
-      prediction_biasdata_points_.begin(), prediction_biasdata_points_.begin() + num_training);
+      data_points_.begin(), data_points_.begin() + num_training);
   std::vector<std::vector<float>> split_hi(
-      prediction_biasdata_points_.begin() + num_training, prediction_biasdata_points_.end());
+      data_points_.begin() + num_training, data_points_.end());
 
-  prediction_biasdata_points_ = split_lo;
+  data_points_ = split_lo;
   return SyntheticDataset(split_hi);
 }
 

@@ -121,9 +121,9 @@ std::tuple<size_t, float, float> Model::Train(
 float Model::ComputeNLL(std::vector<float> true_labels, std::vector<float> predictions) {
   float error = 0.0;
 
-  for (size_t i = 0; i < true_y.size(); i++) {
-    error += (true_y[i] * log(Activation(pred[i])) +
-              (1.0 - true_y[i]) * log(1 - Activation(pred[i])));
+  for (size_t i = 0; i < true_labels.size(); i++) {
+    error += (true_labels[i] * log(Activation(predictions[i])) +
+              (1.0 - true_labels[i]) * log(1 - Activation(predictions[i])));
   }
 
   return -error;

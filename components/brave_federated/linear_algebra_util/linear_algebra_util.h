@@ -10,32 +10,28 @@
 
 namespace brave_federated {
 
+// aliases
 using Weights = std::vector<float>;
 using Sample = std::vector<float>;
+using Vector = std::vector<float>;
 using DataSet = std::vector<Sample>;
+using Matrix = std::vector<Vector>;
 
 class LinearAlgebraUtil {
  public:
-  static std::vector<float> SubtractVector(std::vector<float> v1,
-                                           std::vector<float> v2);
+  static Vector SubtractVector(Vector v1, Vector v2);
 
-  static std::vector<float> MultiplyMatrixVector(
-      std::vector<std::vector<float>> mat,
-      std::vector<float> v);
+  static Vector MultiplyMatrixVector(Matrix mat, Vector v);
 
-  static std::vector<std::vector<float>> MultiplyMatrices(
-      std::vector<std::vector<float>> mat1,
-      std::vector<std::vector<float>> mat2);
+  static Matrix MultiplyMatrices(Matrix mat1, Matrix mat2);
 
-  static std::vector<float> AddVectorScalar(std::vector<float> v, float a);
+  static Vector AddVectorScalar(Vector v, float a);
 
-  static std::vector<float> AddVectors(std::vector<float> v1,
-                                       std::vector<float> v2);
+  static Vector AddVectors(Vector v1, Vector v2);
 
-  static std::vector<float> MultiplyVectorScalar(std::vector<float> v, float a);
+  static Vector MultiplyVectorScalar(Vector v, float a);
 
-  static std::vector<std::vector<float>> TransposeVector(
-      std::vector<std::vector<float>> v);
+  static Matrix TransposeVector(Matrix v);
 };
 
 }  // namespace brave_federated

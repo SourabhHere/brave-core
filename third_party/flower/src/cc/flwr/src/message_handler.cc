@@ -2,7 +2,7 @@
 
 #include "brave/third_party/flower/src/cc/flwr/include/message_handler.h"
 
-std::tuple<ClientMessage, int> _reconnect(
+std::tuple<ClientMessage, int> _Reconnect(
     ServerMessage_Reconnect reconnect_msg) {
   // Determine the reason for sending Disconnect message
   Reason reason = Reason::ACK;
@@ -21,50 +21,50 @@ std::tuple<ClientMessage, int> _reconnect(
   return std::make_tuple(cm, sleep_duration);
 }
 
-ClientMessage _get_parameters(flwr::Client* client) {
+ClientMessage _GetParameters(flwr::Client* client) {
   ClientMessage cm;
   *(cm.mutable_parameters_res()) =
-      parameters_res_to_proto(client->get_parameters());
+      parameters_res_to_proto(client->GetParameters());
   return cm;
 }
 
-ClientMessage _fit(flwr::Client* client, ServerMessage_FitIns fit_msg) {
+ClientMessage _Fit(flwr::Client* client, ServerMessage_FitIns fit_msg) {
   // Deserialize fit instruction
   flwr::FitIns fit_ins = fit_ins_from_proto(fit_msg);
   // Perform fit
-  flwr::FitRes fit_res = client->fit(fit_ins);
+  flwr::FitRes fit_res = client->Fit(fit_ins);
   // Serialize fit result
   ClientMessage cm;
   *cm.mutable_fit_res() = fit_res_to_proto(fit_res);
   return cm;
 }
 
-ClientMessage _evaluate(flwr::Client* client,
+ClientMessage _Evaluate(flwr::Client* client,
                         ServerMessage_EvaluateIns evaluate_msg) {
   // Deserialize evaluate instruction
   flwr::EvaluateIns evaluate_ins = evaluate_ins_from_proto(evaluate_msg);
   // Perform evaluation
-  flwr::EvaluateRes evaluate_res = client->evaluate(evaluate_ins);
+  flwr::EvaluateRes evaluate_res = client->Evaluate(evaluate_ins);
   // Serialize evaluate result
   ClientMessage cm;
   *cm.mutable_evaluate_res() = evaluate_res_to_proto(evaluate_res);
   return cm;
 }
 
-std::tuple<ClientMessage, int, bool> handle(flwr::Client* client,
+std::tuple<ClientMessage, int, bool> HandleMessage(flwr::Client* client,
                                             ServerMessage server_msg) {
   if (server_msg.has_reconnect()) {
-    std::tuple<ClientMessage, int> rec = _reconnect(server_msg.reconnect());
+    std::tuple<ClientMessage, int> rec = _Reconnect(server_msg.reconnect());
     return std::make_tuple(std::get<0>(rec), std::get<1>(rec), false);
   }
   if (server_msg.has_get_parameters()) {
-    return std::make_tuple(_get_parameters(client), 0, true);
+    return std::make_tuple(_GetParameters(client), 0, true);
   }
   if (server_msg.has_fit_ins()) {
-    return std::make_tuple(_fit(client, server_msg.fit_ins()), 0, true);
+    return std::make_tuple(_Fit(client, server_msg.fit_ins()), 0, true);
   }
   if (server_msg.has_evaluate_ins()) {
-    return std::make_tuple(_evaluate(client, server_msg.evaluate_ins()), 0,
+    return std::make_tuple(_Evaluate(client, server_msg.evaluate_ins()), 0,
                            true);
   }
   throw "Unkown server message";

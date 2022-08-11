@@ -31,17 +31,17 @@ using flower::transport::ServerMessage_EvaluateIns;
 using flower::transport::ServerMessage_FitIns;
 using flower::transport::ServerMessage_Reconnect;
 
-std::tuple<ClientMessage, int> _reconnect(
+std::tuple<ClientMessage, int> _Reconnect(
     ServerMessage_Reconnect reconnect_msg);
 
-ClientMessage _get_parameters(flwr::Client* client);
+ClientMessage _GetParameters(flwr::Client* client);
 
-ClientMessage _fit(flwr::Client* client, ServerMessage_FitIns fit_msg);
+ClientMessage _Fit(flwr::Client* client, ServerMessage_FitIns fit_msg);
 
-ClientMessage _evaluate(flwr::Client* client,
+ClientMessage _Evaluate(flwr::Client* client,
                         ServerMessage_EvaluateIns evaluate_msg);
 
-std::tuple<ClientMessage, int, bool> handle(flwr::Client* client,
+std::tuple<ClientMessage, int, bool> HandleMessage(flwr::Client* client,
                                             ServerMessage server_msg);
 
 #endif  // BRAVE_THIRD_PARTY_FLOWER_SRC_CC_FLWR_INCLUDE_MESSAGE_HANDLER_H_

@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "base/memory/raw_ptr.h"
 #include "brave/third_party/flower/src/cc/flwr/include/client.h"
 #include "brave/components/brave_federated/linear_algebra_util/linear_algebra_util.h"
 
@@ -31,9 +32,7 @@ class FederatedClient final : public flwr::Client {
   void SetTestData(DataSet test_data);
 
   void SetParameters(flwr::Parameters parameters);
-  bool IsCommunicating() override {
-    return is_communicating_;
-  } 
+  bool IsCommunicating() override;
   flwr::ParametersRes GetParameters() override;
   flwr::PropertiesRes GetProperties(flwr::PropertiesIns instructions) override;
   flwr::EvaluateRes Evaluate(flwr::EvaluateIns instructions) override;

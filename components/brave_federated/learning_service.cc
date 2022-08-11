@@ -13,7 +13,7 @@
 #include "brave/components/brave_federated/eligibility_service.h"
 #include "brave/components/brave_federated/notification_ad_task_constants.h"
 #include "brave/components/brave_federated/synthetic_dataset/synthetic_dataset.h"
-#include "brave/third_party/flower/src/cc/flwr/include/start.h"
+#include "brave/third_party/flower/src/cc/flwr/include/client_runner.h"
 
 namespace brave_federated {
 
@@ -47,9 +47,6 @@ LearningService::LearningService(EligibilityService* eligibility_service)
 
   SyntheticDataset local_training_data = SyntheticDataset(W, b, 32, 5500);
   SyntheticDataset local_test_data = local_training_data.SeparateTestData(5000);
-
-  local_training_data.DumpToCSV("training_data_");
-  local_test_data.DumpToCSV("test_data_");
 
   notification_ad_client->SetTrainingData(local_training_data.GetDataPoints());
   notification_ad_client->SetTestData(local_test_data.GetDataPoints());
