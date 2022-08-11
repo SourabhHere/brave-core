@@ -65,6 +65,8 @@ void BraveProfileImportImpl::StartImport(
   } else if (base::StartsWith(base::UTF16ToUTF8(source_profile.importer_name),
                               "Chromium", base::CompareCase::SENSITIVE)) {
     command_line->AppendSwitch("import-chromium");
+  } else if (source_profile.importer_type == importer::TYPE_VIVALDI) {
+    command_line->AppendSwitch("import-vivaldi");
   }
 
   content::UtilityThread::Get()->EnsureBlinkInitialized();
