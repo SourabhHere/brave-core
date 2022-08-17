@@ -690,6 +690,9 @@ public class BytecodeTest {
                 "org/chromium/chrome/browser/omnibox/suggestions/editurl/EditUrlSuggestionProcessor",
                 "mHasClearedOmniboxForFocus"));
         Assert.assertTrue(
+                fieldExists("org/chromium/chrome/browser/suggestions/tile/MostVisitedTilesMediator",
+                        "mTileGroup"));
+        Assert.assertTrue(
                 fieldExists("org/chromium/chrome/browser/sync/settings/ManageSyncSettings",
                         "mGoogleActivityControls"));
         Assert.assertTrue(fieldExists(
