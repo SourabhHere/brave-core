@@ -75,7 +75,7 @@ pipeline {
                                                 github('brave/devops', 'https')
                                             }
                                             //branch('${params.DEVOPS_BRANCH}')
-                                            branch('wknapik-sync-init-issues')
+                                            branch('wknapik-test-scripts-fix')
                                         }
                                     }
                                     scriptPath("jenkins/jobs/browser/pr-brave-browser-${PLATFORM}.Jenkinsfile")
