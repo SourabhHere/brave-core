@@ -3024,6 +3024,18 @@ If you don't accept this request, VPN will not reconnect and your internet conne
     <message name="IDS_WIDGET_ADDED_TO_HOME_SCREEN" desc="Toast message to display that widget has been successfully added to the home screen">
       Widget added to the home screen
     </message>
+    <message name="IDS_TRY_BRAVE_SEARCH_WIDGET" desc="Title of Brave search widget promo">
+      Try the Brave search widget
+    </message>
+    <message name="IDS_TRY_BRAVE_SEARCH_WIDGET_DESCRIPTION" desc="Description of Brave search widget promo">
+      Access search and more with a quick tap directly from your home screen.
+    </message>
+    <message name="IDS_ADD_WIDGET" desc="Add widget button text">
+      Add widget
+    </message>
+    <message name="IDS_BRAVE_QUICK_ACTION_SEARCH" desc="Description for Brave QuickActionSearchAndBookmarkWidget preview">
+      Brave quick action search
+    </message>
   </messages>
   </release>
 </grit>

@@ -6,11 +6,6 @@
 package org.chromium.chrome.browser.settings;
 
 import android.app.AlertDialog;
-import android.app.PendingIntent;
-import android.appwidget.AppWidgetManager;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
@@ -20,7 +15,6 @@ import android.util.DisplayMetrics;
 import androidx.preference.Preference;
 
 import org.chromium.base.BraveFeatureList;
-import org.chromium.base.ContextUtils;
 import org.chromium.base.Log;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.BraveConfig;
@@ -41,7 +35,7 @@ import org.chromium.chrome.browser.toolbar.bottom.BottomToolbarConfiguration;
 import org.chromium.chrome.browser.vpn.utils.BraveVpnPrefUtils;
 import org.chromium.chrome.browser.vpn.utils.BraveVpnUtils;
 import org.chromium.chrome.browser.vpn.utils.InAppPurchaseWrapper;
-import org.chromium.chrome.browser.widget.quickactionsearchandbookmark.QuickActionSearchAndBookmarkWidgetProvider;
+import org.chromium.chrome.browser.widget.quickactionsearchandbookmark.utils.BraveSearchWidgetUtils;
 import org.chromium.components.browser_ui.settings.ChromeBasePreference;
 import org.chromium.components.browser_ui.settings.ChromeSwitchPreference;
 import org.chromium.components.browser_ui.settings.SettingsUtils;
@@ -217,13 +211,7 @@ public class BraveMainPreferencesBase
         findPreference(PREF_BRAVE_SEARCH_ENGINES).setOrder(++generalOrder);
         findPreference(PREF_HOMEPAGE).setOrder(++generalOrder);
 
-        //This 'Home screen widget' option should be available on Android 8 and above and on home screens which support widget.
-        AppWidgetManager appWidgetManager =
-                ContextUtils.getApplicationContext().getSystemService(AppWidgetManager.class);
-        boolean shouldShowHomeScreenWidgetPreference =
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && appWidgetManager != null
-                && appWidgetManager.isRequestPinAppWidgetSupported();
-        if (shouldShowHomeScreenWidgetPreference)
+        if (BraveSearchWidgetUtils.isRequestPinAppWidgetSupported())
             findPreference(PREF_HOME_SCREEN_WIDGET).setOrder(++generalOrder);
         else
             removePreferenceIfPresent(PREF_HOME_SCREEN_WIDGET);
@@ -366,37 +354,16 @@ public class BraveMainPreferencesBase
         });
 
         Preference homeScreenWidgetPreference = findPreference(PREF_HOME_SCREEN_WIDGET);
-        if (homeScreenWidgetPreference != null)
-            homeScreenWidgetPreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                @Override
-                public boolean onPreferenceClick(Preference preference) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        Context context = ContextUtils.getApplicationContext();
-                        AppWidgetManager appWidgetManager =
-                                context.getSystemService(AppWidgetManager.class);
-
-                        ComponentName myProvider = new ComponentName(
-                                context, QuickActionSearchAndBookmarkWidgetProvider.class);
-
-                        if (appWidgetManager != null
-                                && appWidgetManager.isRequestPinAppWidgetSupported()) {
-                            Bundle bundle = new Bundle();
-                            bundle.putBoolean(
-                                    QuickActionSearchAndBookmarkWidgetProvider.FROM_SETTINGS, true);
-                            Intent pinnedWidgetCallbackIntent = new Intent(
-                                    context, QuickActionSearchAndBookmarkWidgetProvider.class);
-                            pinnedWidgetCallbackIntent.putExtras(bundle);
-                            PendingIntent successCallback = PendingIntent.getBroadcast(context, 0,
-                                    pinnedWidgetCallbackIntent,
-                                    PendingIntent.FLAG_IMMUTABLE
-                                            | PendingIntent.FLAG_UPDATE_CURRENT);
-
-                            appWidgetManager.requestPinAppWidget(myProvider, null, successCallback);
+        if (homeScreenWidgetPreference != null) {
+            homeScreenWidgetPreference.setOnPreferenceClickListener(
+                    new Preference.OnPreferenceClickListener() {
+                        @Override
+                        public boolean onPreferenceClick(Preference preference) {
+                            BraveSearchWidgetUtils.requestPinAppWidget();
+                            return true;
                         }
-                    }
-                    return true;
-                }
-            });
+                    });
+        }
     }
 
     // TODO(simonhong): Make this static public with proper class.

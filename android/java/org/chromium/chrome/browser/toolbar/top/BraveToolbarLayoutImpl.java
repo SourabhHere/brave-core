@@ -120,6 +120,7 @@ import org.chromium.chrome.browser.toolbar.top.ToolbarLayout;
 import org.chromium.chrome.browser.toolbar.top.ToolbarTablet.OfflineDownloader;
 import org.chromium.chrome.browser.util.BraveConstants;
 import org.chromium.chrome.browser.util.PackageUtils;
+import org.chromium.chrome.browser.widget.quickactionsearchandbookmark.promo.SearchWidgetPromoPanel;
 import org.chromium.components.browser_ui.styles.ChromeColors;
 import org.chromium.components.embedder_support.util.UrlConstants;
 import org.chromium.components.embedder_support.util.UrlUtilities;
@@ -194,6 +195,8 @@ public abstract class BraveToolbarLayoutImpl extends ToolbarLayout
     private ColorStateList mDarkModeTint;
     private ColorStateList mLightModeTint;
 
+    private SearchWidgetPromoPanel mSearchWidgetPromoPanel;
+
     private final Set<Integer> mTabsWithWalletIcon =
             Collections.synchronizedSet(new HashSet<Integer>());
 
@@ -250,7 +253,7 @@ public abstract class BraveToolbarLayoutImpl extends ToolbarLayout
         mDarkModeTint = ThemeUtils.getThemedToolbarIconTint(getContext(), false);
         mLightModeTint =
                 ColorStateList.valueOf(ContextCompat.getColor(getContext(), R.color.brave_white));
-
+        mSearchWidgetPromoPanel = new SearchWidgetPromoPanel(getContext());
         if (mHomeButton != null) {
             mHomeButton.setOnLongClickListener(this);
         }
@@ -1032,6 +1035,9 @@ public abstract class BraveToolbarLayoutImpl extends ToolbarLayout
             Intent searchActivityIntent = new Intent(context, SearchActivity.class);
             context.startActivity(searchActivityIntent);
         }
+        if (hasFocus)
+            mSearchWidgetPromoPanel.showIfNeeded(this);
+        
         if (OnboardingPrefManager.getInstance().getUrlFocusCount() == 0) {
             OnboardingPrefManager.getInstance().updateUrlFocusCount();
         }
