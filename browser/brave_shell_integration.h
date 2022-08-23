@@ -8,7 +8,11 @@
 
 #include "chrome/browser/shell_integration.h"
 
+class Profile;
+
 namespace shell_integration {
+
+void PinShortcut(Profile* profile = nullptr);
 
 class BraveDefaultBrowserWorker : public DefaultBrowserWorker {
  public:

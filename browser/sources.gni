@@ -81,8 +81,6 @@ brave_chrome_browser_sources = [
   "//brave/browser/brave_local_state_prefs.h",
   "//brave/browser/brave_profile_prefs.cc",
   "//brave/browser/brave_profile_prefs.h",
-  "//brave/browser/brave_shell_integration.cc",
-  "//brave/browser/brave_shell_integration.h",
   "//brave/browser/brave_tab_helpers.cc",
   "//brave/browser/brave_tab_helpers.h",
   "//brave/browser/browser_context_keyed_service_factories.cc",
@@ -217,6 +215,8 @@ if (is_mac) {
   brave_chrome_browser_sources += [
     "//brave/browser/brave_browser_main_parts_mac.h",
     "//brave/browser/brave_browser_main_parts_mac.mm",
+    "//brave/browser/brave_shell_integration_mac.h",
+    "//brave/browser/brave_shell_integration_mac.mm",
   ]
 }
 
@@ -254,6 +254,8 @@ if (is_android) {
   ]
 } else {
   brave_chrome_browser_sources += [
+    "//brave/browser/brave_shell_integration.cc",
+    "//brave/browser/brave_shell_integration.h",
     "//brave/browser/p3a/p3a_core_metrics.cc",
     "//brave/browser/p3a/p3a_core_metrics.h",
     "//brave/browser/profile_resetter/brave_profile_resetter.cc",

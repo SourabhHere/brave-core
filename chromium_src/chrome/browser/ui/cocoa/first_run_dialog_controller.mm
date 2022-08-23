@@ -10,6 +10,7 @@
 #include "base/i18n/rtl.h"
 #include "base/mac/scoped_nsobject.h"
 #include "base/strings/sys_string_conversions.h"
+#include "brave/browser/brave_shell_integration.h"
 #include "brave/browser/metrics/metrics_reporting_util.h"
 #include "brave/components/l10n/common/locale_util.h"
 #include "brave/grit/brave_generated_resources.h"
@@ -170,6 +171,8 @@
 }
 
 - (void)ok:(id)sender {
+  shell_integration::PinShortcut();
+
   _setAsDefaultBrowser = YES;
   [[[self view] window] close];
   [NSApp stopModal];

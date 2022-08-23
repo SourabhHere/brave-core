@@ -5,11 +5,7 @@
 
 #include "brave/browser/ui/webui/settings/brave_settings_default_browser_handler.h"
 
-#include "build/build_config.h"
-
-#if BUILDFLAG(IS_WIN)
-#include "brave/browser/brave_shell_integration_win.h"
-#endif
+#include "brave/browser/brave_shell_integration.h"
 
 namespace settings {
 
@@ -19,10 +15,8 @@ void BraveDefaultBrowserHandler::SetAsDefaultBrowser(
     const base::Value::List& args) {
   DefaultBrowserHandler::SetAsDefaultBrowser(args);
 
-#if BUILDFLAG(IS_WIN)
   // Trying to pin when user ask this as a default browser.
-  shell_integration::win::PinToTaskbar(Profile::FromWebUI(web_ui()));
-#endif
+  shell_integration::PinShortcut(Profile::FromWebUI(web_ui()));
 }
 
 }  // namespace settings

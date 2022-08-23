@@ -26,10 +26,6 @@
 #include "ui/views/layout/box_layout.h"
 #include "ui/views/layout/layout_provider.h"
 
-#if BUILDFLAG(IS_WIN)
-#include "brave/browser/brave_shell_integration_win.h"
-#endif
-
 namespace brave {
 
 void ShowDefaultBrowserDialog(Browser* browser) {
@@ -167,15 +163,11 @@ void BraveDefaultBrowserDialogView::OnAcceptButtonClicked() {
   // message loops of the FILE and UI thread will hold references to it
   // and it will be automatically freed once all its tasks have finished.
   base::MakeRefCounted<shell_integration::BraveDefaultBrowserWorker>()
-#if BUILDFLAG(IS_WIN)
       ->StartSetAsDefault(
           base::BindOnce([](shell_integration::DefaultWebClientState state) {
             if (state == shell_integration::DefaultWebClientState::IS_DEFAULT) {
               // Try to pin to taskbar when Brave is set as a default browser.
-              shell_integration::win::PinToTaskbar();
+              shell_integration::PinShortcut();
             }
           }));
-#else
-      ->StartSetAsDefault(base::NullCallback());
-#endif
 }

@@ -15,7 +15,22 @@
 #include "chrome/installer/util/shell_util.h"
 #endif
 
+#if BUILDFLAG(IS_MAC)
+#include "brave/browser/brave_shell_integration_mac.h"
+#endif
+
 namespace shell_integration {
+
+void PinShortcut(Profile* profile) {
+#if BUILDFLAG(IS_WIN)
+  win::PinToTaskbar(profile);
+#elif BUILDFLAG(IS_MAC)
+  // Mac doesn't support profile specific icon in dock.
+  mac::AddIconToDock();
+#elif BUILDFLAG(IS_LINUX)
+  // Not supported on linux yet.
+#endif
+}
 
 BraveDefaultBrowserWorker::BraveDefaultBrowserWorker() = default;
 BraveDefaultBrowserWorker::~BraveDefaultBrowserWorker() = default;
