@@ -149,8 +149,8 @@ void BraveBrowserMainParts::PostBrowserStart() {
 
         SyncCannotRunInfoBarDelegate::Create(infobar_manager, profile, browser);
 
-        BraveSyncAccountDeletedInfoBarDelegate::Create(infobar_manager, profile,
-                                                       browser);
+        BraveSyncAccountDeletedInfoBarDelegate::Create(active_web_contents,
+                                                       profile, browser);
       }
     }
   }

@@ -72,11 +72,8 @@ void BraveSyncAlertsService::ShowDesktopInfobar() {
     content::WebContents* active_web_contents =
         browser->tab_strip_model()->GetActiveWebContents();
     if (active_web_contents) {
-      infobars::ContentInfoBarManager* infobar_manager =
-          infobars::ContentInfoBarManager::FromWebContents(active_web_contents);
-
-      BraveSyncAccountDeletedInfoBarDelegate::Create(infobar_manager, profile_,
-                                                     browser);
+      BraveSyncAccountDeletedInfoBarDelegate::Create(active_web_contents,
+                                                     profile_, browser);
     }
   }
 }
