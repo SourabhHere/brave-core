@@ -75,7 +75,7 @@ pipeline {
                                                 github('brave/devops', 'https')
                                             }
                                             //branch('${params.DEVOPS_BRANCH}')
-                                            branch('wknapik-test-scripts-fix')
+                                            branch('wknapik-malloc-debug-report')
                                         }
                                     }
                                     scriptPath("jenkins/jobs/browser/pr-brave-browser-${PLATFORM}.Jenkinsfile")
