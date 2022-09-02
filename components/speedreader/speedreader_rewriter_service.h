@@ -39,6 +39,7 @@ class SpeedreaderRewriterService {
   std::unique_ptr<Rewriter> MakeRewriter(const GURL& url,
                                          const std::string& theme);
   const std::string& GetContentStylesheet();
+  const std::string& GetStylesheetCSPHash();
 
  private:
   void OnFileChanged(const base::FilePath& path, bool error);
@@ -49,6 +50,7 @@ class SpeedreaderRewriterService {
   base::FilePathWatcher* file_watcher_ = nullptr;
 
   std::string content_stylesheet_;
+  std::string content_stylesheet_csp_hash_;
   base::FilePath stylesheet_override_path_;
   std::unique_ptr<speedreader::SpeedReader> speedreader_;
   base::WeakPtrFactory<SpeedreaderRewriterService> weak_factory_{this};

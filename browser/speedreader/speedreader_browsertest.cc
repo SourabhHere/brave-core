@@ -42,7 +42,8 @@
 const char kTestHost[] = "a.test";
 const char kTestPageSimple[] = "/simple.html";
 const char kTestPageReadable[] = "/articles/guardian.html";
-const char kTestXml[] = "/article/rss.xml";
+const char kTestXml[] = "/articles/rss.xml";
+const char kTestCSP[] = "/articles/csp.html";
 
 constexpr char kSpeedreaderToggleUMAHistogramName[] =
     "Brave.SpeedReader.ToggleCount";
@@ -348,7 +349,7 @@ IN_PROC_BROWSER_TEST_F(SpeedReaderBrowserTest, ShowOriginalPage) {
       const link =
         document.getElementById('c93e2206-2f31-4ddc-9828-2bb8e8ed940e');
       link.click();
-      return link.text
+      return link.innerText
     })();
   )js";
 
@@ -445,4 +446,23 @@ IN_PROC_BROWSER_TEST_F(SpeedReaderBrowserTest, RSS) {
   EXPECT_EQ(nullptr, content::EvalJs(ActiveWebContents(), kNoStyleInjected,
                                      content::EXECUTE_SCRIPT_DEFAULT_OPTIONS,
                                      speedreader::kIsolatedWorldId));
+}
+
+IN_PROC_BROWSER_TEST_F(SpeedReaderBrowserTest, CSP) {
+  content::WebContentsConsoleObserver console_observer(ActiveWebContents());
+
+  ToggleSpeedreader();
+  NavigateToPageSynchronously(kTestCSP, WindowOpenDisposition::CURRENT_TAB);
+
+  EXPECT_TRUE(GetReaderButton()->GetVisible());
+
+  const std::string kStyleInjected =
+      R"js(document.getElementById('brave_speedreader_style') !== null)js";
+
+  EXPECT_TRUE(content::EvalJs(ActiveWebContents(), kStyleInjected,
+                              content::EXECUTE_SCRIPT_DEFAULT_OPTIONS,
+                              speedreader::kIsolatedWorldId)
+                  .ExtractBool());
+
+  EXPECT_EQ(0u, console_observer.messages().size());
 }
