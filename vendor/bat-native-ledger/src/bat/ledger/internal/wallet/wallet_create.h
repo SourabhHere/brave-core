@@ -6,12 +6,8 @@
 #ifndef BRAVE_VENDOR_BAT_NATIVE_LEDGER_SRC_BAT_LEDGER_INTERNAL_WALLET_WALLET_CREATE_H_
 #define BRAVE_VENDOR_BAT_NATIVE_LEDGER_SRC_BAT_LEDGER_INTERNAL_WALLET_WALLET_CREATE_H_
 
-#include <stdint.h>
-
-#include <memory>
 #include <string>
 
-#include "bat/ledger/internal/endpoint/promotion/promotion_server.h"
 #include "bat/ledger/ledger.h"
 
 namespace ledger {
@@ -21,20 +17,20 @@ namespace wallet {
 
 class WalletCreate {
  public:
-  explicit WalletCreate(LedgerImpl* ledger);
-  ~WalletCreate();
+  explicit WalletCreate(LedgerImpl*);
 
-  void Start(ledger::ResultCallback callback);
+  void CreateWallet(ResultCallback, std::string&& geo_country);
 
  private:
-  void OnCreate(ledger::ResultCallback callback,
-                type::Result result,
-                const std::string& payment_id);
+  template <typename Response>
+  void OnResponse(ResultCallback,
+                  std::string&& geo_country,
+                  Response&& response);
 
   LedgerImpl* ledger_;  // NOT OWNED
-  std::unique_ptr<endpoint::PromotionServer> promotion_server_;
 };
 
 }  // namespace wallet
 }  // namespace ledger
+
 #endif  // BRAVE_VENDOR_BAT_NATIVE_LEDGER_SRC_BAT_LEDGER_INTERNAL_WALLET_WALLET_CREATE_H_

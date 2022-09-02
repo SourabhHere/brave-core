@@ -11,16 +11,17 @@
 #include "bat/ledger/global_constants.h"
 #include "bat/ledger/internal/common/random_util.h"
 #include "bat/ledger/internal/endpoint/gemini/gemini_server.h"
+#include "bat/ledger/internal/endpoints/post_connect/gemini/post_connect_gemini.h"
+#include "bat/ledger/internal/endpoints/request_for.h"
 #include "bat/ledger/internal/ledger_impl.h"
 #include "bat/ledger/internal/logging/event_log_keys.h"
 #include "bat/ledger/internal/logging/event_log_util.h"
-#include "bat/ledger/internal/request/post_connect/gemini/post_connect_gemini.h"
-#include "bat/ledger/internal/request/request_for.h"
 #include "bat/ledger/internal/wallet/wallet_util.h"
 #include "crypto/sha2.h"
 
-using ledger::request::RequestFor;
-using ledger::request::connect::PostConnectGemini;
+using ledger::endpoints::PostConnect;
+using ledger::endpoints::PostConnectGemini;
+using ledger::endpoints::RequestFor;
 using ledger::wallet::OnWalletStatusChange;
 
 namespace ledger {
@@ -206,7 +207,8 @@ void GeminiAuthorization::OnPostAccount(
                                             std::move(recipient_id)}) {
     std::move(request).Send(std::move(on_connect));
   } else {
-    std::move(on_connect).Run(type::Result::LEDGER_ERROR);
+    std::move(on_connect)
+        .Run(base::unexpected(PostConnect::Error::FAILED_TO_CREATE_REQUEST));
   }
 }
 
@@ -214,7 +216,9 @@ void GeminiAuthorization::OnConnectWallet(
     ledger::ExternalWalletAuthorizationCallback callback,
     std::string&& token,
     std::string&& recipient_id,
-    type::Result result) {
+    PostConnect::Response&& response) {
+  const type::Result result = PostConnect::ResponseToResult(response);
+
   auto wallet_ptr = ledger_->gemini()->GetWallet();
   if (!wallet_ptr) {
     BLOG(0, "Gemini wallet is null!");

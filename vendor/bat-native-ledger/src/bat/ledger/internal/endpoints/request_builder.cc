@@ -3,15 +3,15 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#include "bat/ledger/internal/request/request_builder.h"
+#include "bat/ledger/internal/endpoints/request_builder.h"
 
 #include <utility>
 
-namespace ledger::request {
+namespace ledger::endpoints {
 
 RequestBuilder::~RequestBuilder() = default;
 
-absl::optional<type::UrlRequestPtr> RequestBuilder::Request() const {
+absl::optional<type::UrlRequestPtr> RequestBuilder::Request() {
   const auto url = Url();
   if (!url) {
     return absl::nullopt;
@@ -35,28 +35,28 @@ RequestBuilder::RequestBuilder(LedgerImpl* ledger) : ledger_(ledger) {
   DCHECK(ledger);
 }
 
-type::UrlMethod RequestBuilder::Method() const {
+type::UrlMethod RequestBuilder::Method() {
   return type::UrlMethod::POST;
 }
 
-absl::optional<std::vector<std::string>> RequestBuilder::Headers() const {
+absl::optional<std::vector<std::string>> RequestBuilder::Headers() {
   return std::vector<std::string>{};
 }
 
-absl::optional<std::string> RequestBuilder::Content() const {
+absl::optional<std::string> RequestBuilder::Content() {
   return "";
 }
 
-std::string RequestBuilder::ContentType() const {
+std::string RequestBuilder::ContentType() {
   return "";
 }
 
-bool RequestBuilder::SkipLog() const {
+bool RequestBuilder::SkipLog() {
   return false;
 }
 
-uint32_t RequestBuilder::LoadFlags() const {
+uint32_t RequestBuilder::LoadFlags() {
   return 0;
 }
 
-};  // namespace ledger::request
+};  // namespace ledger::endpoints

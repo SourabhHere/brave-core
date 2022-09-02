@@ -10,10 +10,10 @@
 
 #include "base/test/bind.h"
 #include "base/test/task_environment.h"
+#include "bat/ledger/internal/endpoints/post_connect/post_connect.h"
+#include "bat/ledger/internal/endpoints/request_for.h"
 #include "bat/ledger/internal/ledger_client_mock.h"
 #include "bat/ledger/internal/ledger_impl_mock.h"
-#include "bat/ledger/internal/request/post_connect/post_connect.h"
-#include "bat/ledger/internal/request/request_for.h"
 #include "bat/ledger/internal/state/state_keys.h"
 #include "net/http/http_status_code.h"
 #include "testing/gtest/include/gtest/gtest.h"
@@ -27,11 +27,17 @@ using ::testing::TestParamInfo;
 using ::testing::TestWithParam;
 using ::testing::Values;
 
-namespace ledger::request::connect::test {
+namespace ledger::endpoints::test {
 
-class PostConnectMock final : public request::PostConnect {
+using Error = PostConnect::Error;
+using Response = PostConnect::Response;
+
+class PostConnectMock final : public PostConnect {
  public:
-  explicit PostConnectMock(LedgerImpl* ledger) : PostConnect(ledger) {}
+  explicit PostConnectMock(LedgerImpl* ledger) : PostConnect(ledger) {
+    content_ = "";
+  }
+
   ~PostConnectMock() override = default;
 
  private:
@@ -43,7 +49,7 @@ using PostConnectParamType = std::tuple<
     std::string,          // test name suffix
     net::HttpStatusCode,  // connect endpoint response status code
     std::string,          // connect endpoint response body
-    type::Result          // expected result
+    Response              // expected response
 >;
 // clang-format on
 
@@ -65,10 +71,10 @@ class PostConnect : public TestWithParam<PostConnectParamType> {
   void SetUp() override {
     const std::string wallet =
         R"(
-         {
-           "payment_id":"fa5dea51-6af4-44ca-801b-07b6df3dcfe4",
-           "recovery_seed":"AN6DLuI2iZzzDxpzywf+IKmK1nzFRarNswbaIDI3pQg="
-         }
+          {
+            "payment_id":"fa5dea51-6af4-44ca-801b-07b6df3dcfe4",
+            "recovery_seed":"AN6DLuI2iZzzDxpzywf+IKmK1nzFRarNswbaIDI3pQg="
+          }
         )";
 
     ON_CALL(mock_ledger_client_, GetStringState(state::kWalletBrave))
@@ -80,7 +86,7 @@ class PostConnect : public TestWithParam<PostConnectParamType> {
 };
 
 TEST_P(PostConnect, Paths) {
-  const auto& [ignore, status_code, body, expected_result] = GetParam();
+  const auto& [ignore, status_code, body, expected_response] = GetParam();
 
   ON_CALL(mock_ledger_client_, LoadURL(_, _))
       .WillByDefault(Invoke(
@@ -96,8 +102,8 @@ TEST_P(PostConnect, Paths) {
   EXPECT_TRUE(request);
 
   std::move(request).Send(base::BindLambdaForTesting(
-      [expected_result = expected_result](type::Result result) {
-        EXPECT_EQ(result, expected_result);
+      [expected_response = expected_response](Response&& response) {
+        EXPECT_EQ(response, expected_response);
       }));
 }
 
@@ -110,7 +116,7 @@ INSTANTIATE_TEST_SUITE_P(
       "00_HTTP_200",
       net::HTTP_OK,
       "",
-      type::Result::LEDGER_OK
+      {}
     },
     PostConnectParamType{
       "01_HTTP_400_flagged_wallet",
@@ -121,7 +127,7 @@ INSTANTIATE_TEST_SUITE_P(
           "code": 400
         }
       )",
-      type::Result::FLAGGED_WALLET
+      base::unexpected(Error::FLAGGED_WALLET)
     },
     PostConnectParamType{
       "02_HTTP_400_mismatched_provider_account_regions",
@@ -132,7 +138,7 @@ INSTANTIATE_TEST_SUITE_P(
           "code": 400
         }
       )",
-      type::Result::MISMATCHED_PROVIDER_ACCOUNT_REGIONS
+      base::unexpected(Error::MISMATCHED_PROVIDER_ACCOUNT_REGIONS)
     },
     PostConnectParamType{
       "03_HTTP_400_region_not_supported",
@@ -143,7 +149,7 @@ INSTANTIATE_TEST_SUITE_P(
           "code": 400
         }
       )",
-      type::Result::REGION_NOT_SUPPORTED
+      base::unexpected(Error::REGION_NOT_SUPPORTED)
     },
     PostConnectParamType{
       "04_HTTP_400_unknown_message",
@@ -154,7 +160,7 @@ INSTANTIATE_TEST_SUITE_P(
           "code": 400
         }
       )",
-      type::Result::LEDGER_ERROR
+      base::unexpected(Error::UNKNOWN_MESSAGE)
     },
     PostConnectParamType{
       "05_HTTP_403_kyc_required",
@@ -165,7 +171,7 @@ INSTANTIATE_TEST_SUITE_P(
           "code": 403
         }
       )",
-      type::Result::NOT_FOUND
+      base::unexpected(Error::KYC_REQUIRED)
     },
     PostConnectParamType{
       "06_HTTP_403_mismatched_provider_accounts",
@@ -176,7 +182,7 @@ INSTANTIATE_TEST_SUITE_P(
           "code": 403
         }
       )",
-      type::Result::MISMATCHED_PROVIDER_ACCOUNTS
+      base::unexpected(Error::MISMATCHED_PROVIDER_ACCOUNTS)
     },
     PostConnectParamType{
       "07_HTTP_403_request_signature_verification_failure",
@@ -187,7 +193,7 @@ INSTANTIATE_TEST_SUITE_P(
           "code": 403
         }
       )",
-      type::Result::REQUEST_SIGNATURE_VERIFICATION_FAILURE
+      base::unexpected(Error::REQUEST_SIGNATURE_VERIFICATION_FAILURE)
     },
     PostConnectParamType{
       "08_HTTP_403_transaction_verification_failure",
@@ -198,7 +204,7 @@ INSTANTIATE_TEST_SUITE_P(
           "code": 403
         }
       )",
-      type::Result::UPHOLD_TRANSACTION_VERIFICATION_FAILURE
+      base::unexpected(Error::TRANSACTION_VERIFICATION_FAILURE)
     },
     PostConnectParamType{
       "09_HTTP_403_unknown_message",
@@ -209,31 +215,31 @@ INSTANTIATE_TEST_SUITE_P(
           "code": 403
         }
       )",
-      type::Result::LEDGER_ERROR
+      base::unexpected(Error::UNKNOWN_MESSAGE)
     },
     PostConnectParamType{
       "10_HTTP_404_kyc_required",
       net::HTTP_NOT_FOUND,
       "",
-      type::Result::NOT_FOUND
+      base::unexpected(Error::KYC_REQUIRED)
     },
     PostConnectParamType{
       "11_HTTP_409_device_limit_reached",
       net::HTTP_CONFLICT,
       "",
-      type::Result::DEVICE_LIMIT_REACHED
+      base::unexpected(Error::DEVICE_LIMIT_REACHED)
     },
     PostConnectParamType{
-      "12_HTTP_500_http_internal_server_error",
+      "12_HTTP_500_unexpected_error",
       net::HTTP_INTERNAL_SERVER_ERROR,
       "",
-      type::Result::LEDGER_ERROR
+      base::unexpected(Error::UNEXPECTED_ERROR)
     },
     PostConnectParamType{
-      "13_HTTP_504_random_server_error",
-      net::HTTP_GATEWAY_TIMEOUT,
+      "13_HTTP_503_unexpected_status_code",
+      net::HTTP_SERVICE_UNAVAILABLE,
       "",
-      type::Result::LEDGER_ERROR
+      base::unexpected(Error::UNEXPECTED_STATUS_CODE)
     }),
   [](const TestParamInfo<PostConnectParamType>& info) {
     return std::get<0>(info.param);
@@ -241,4 +247,4 @@ INSTANTIATE_TEST_SUITE_P(
 );
 // clang-format on
 
-}  // namespace ledger::request::connect::test
+}  // namespace ledger::endpoints::test

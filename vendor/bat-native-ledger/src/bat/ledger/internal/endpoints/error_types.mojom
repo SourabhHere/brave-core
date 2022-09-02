@@ -1,0 +1,37 @@
+module ledger.endpoints.mojom;
+
+enum PatchWalletsError {
+  FAILED_TO_CREATE_REQUEST,
+  INVALID_REQUEST,                              // HTTP 400
+  INVALID_PUBLIC_KEY,                           // HTTP 401
+  WALLET_ALREADY_EXISTS,                        // HTTP 409
+  UNEXPECTED_ERROR,                             // HTTP 500
+  UNEXPECTED_STATUS_CODE                        // HTTP xxx
+};
+
+enum PostConnectError {
+  FAILED_TO_CREATE_REQUEST,
+  FLAGGED_WALLET,                         // HTTP 400
+  MISMATCHED_PROVIDER_ACCOUNT_REGIONS,    // HTTP 400
+  REGION_NOT_SUPPORTED,                   // HTTP 400
+  UNKNOWN_MESSAGE,                        // HTTP 400, HTTP 403
+  KYC_REQUIRED,                           // HTTP 403, HTTP 404
+  MISMATCHED_PROVIDER_ACCOUNTS,           // HTTP 403
+  REQUEST_SIGNATURE_VERIFICATION_FAILURE, // HTTP 403
+  TRANSACTION_VERIFICATION_FAILURE,       // HTTP 403
+  DEVICE_LIMIT_REACHED,                   // HTTP 409
+  UNEXPECTED_ERROR,                       // HTTP 500
+  UNEXPECTED_STATUS_CODE,                 // HTTP xxx
+  FAILED_TO_PARSE_BODY
+};
+
+enum PostWalletsError {
+  FAILED_TO_CREATE_REQUEST,
+  INVALID_REQUEST,                              // HTTP 400
+  INVALID_PUBLIC_KEY,                           // HTTP 401
+  WALLET_GENERATION_DISABLED_FOR_COUNTRY_CODE,  // HTTP 403
+  WALLET_ALREADY_EXISTS,                        // HTTP 409
+  UNEXPECTED_ERROR,                             // HTTP 500
+  UNEXPECTED_STATUS_CODE,                       // HTTP xxx
+  FAILED_TO_PARSE_BODY
+};

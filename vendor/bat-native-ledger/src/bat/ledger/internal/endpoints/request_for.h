@@ -3,32 +3,30 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#ifndef BRAVE_VENDOR_BAT_NATIVE_LEDGER_SRC_BAT_LEDGER_INTERNAL_REQUEST_REQUEST_FOR_H_
-#define BRAVE_VENDOR_BAT_NATIVE_LEDGER_SRC_BAT_LEDGER_INTERNAL_REQUEST_REQUEST_FOR_H_
+#ifndef BRAVE_VENDOR_BAT_NATIVE_LEDGER_SRC_BAT_LEDGER_INTERNAL_ENDPOINTS_REQUEST_FOR_H_
+#define BRAVE_VENDOR_BAT_NATIVE_LEDGER_SRC_BAT_LEDGER_INTERNAL_ENDPOINTS_REQUEST_FOR_H_
 
 #include <string>
 #include <type_traits>
 #include <utility>
 
 #include "base/callback.h"
+#include "bat/ledger/internal/endpoints/request_builder.h"
 #include "bat/ledger/internal/ledger_impl.h"
 #include "bat/ledger/internal/logging/logging.h"
-#include "bat/ledger/internal/request/request_builder.h"
 #include "third_party/abseil-cpp/absl/types/optional.h"
 
-namespace ledger::request {
+namespace ledger::endpoints {
 
-template <typename ConcreteRequestBuilder>
+template <typename Endpoint>
 class RequestFor {
  public:
   template <typename... Ts>
   RequestFor(LedgerImpl* ledger, Ts&&... ts)
       : ledger_(ledger),
-        request_(
-            ConcreteRequestBuilder{ledger, std::forward<Ts>(ts)...}.Request()) {
-    static_assert(
-        std::is_base_of_v<RequestBuilder, ConcreteRequestBuilder>,
-        "ConcreteRequestBuilder should be derived from RequestBuilder!");
+        request_(Endpoint{ledger, std::forward<Ts>(ts)...}.Request()) {
+    static_assert(std::is_base_of_v<RequestBuilder, Endpoint>,
+                  "Endpoint should be derived from RequestBuilder!");
     DCHECK(ledger_);
 
     if (!*this) {
@@ -44,12 +42,13 @@ class RequestFor {
 
   explicit operator bool() const { return request_.has_value(); }
 
-  void Send(typename ConcreteRequestBuilder::Callback callback) && {
+  void Send(
+      base::OnceCallback<void(typename Endpoint::Response&&)> callback) && {
     DCHECK(*this && *request_);
 
-    ledger_->LoadURL(std::move(*request_),
-                     base::BindOnce(&ConcreteRequestBuilder::OnResponse,
-                                    std::move(callback)));
+    ledger_->LoadURL(
+        std::move(*request_),
+        base::BindOnce(&Endpoint::template OnResponse<>, std::move(callback)));
   }
 
  private:
@@ -57,6 +56,6 @@ class RequestFor {
   absl::optional<type::UrlRequestPtr> request_;
 };
 
-}  // namespace ledger::request
+}  // namespace ledger::endpoints
 
-#endif  // BRAVE_VENDOR_BAT_NATIVE_LEDGER_SRC_BAT_LEDGER_INTERNAL_REQUEST_REQUEST_FOR_H_
+#endif  // BRAVE_VENDOR_BAT_NATIVE_LEDGER_SRC_BAT_LEDGER_INTERNAL_ENDPOINTS_REQUEST_FOR_H_

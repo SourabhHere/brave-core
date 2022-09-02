@@ -10,17 +10,18 @@
 
 #include "bat/ledger/global_constants.h"
 #include "bat/ledger/internal/common/random_util.h"
+#include "bat/ledger/internal/endpoints/post_connect/uphold/post_connect_uphold.h"
+#include "bat/ledger/internal/endpoints/request_for.h"
 #include "bat/ledger/internal/ledger_impl.h"
 #include "bat/ledger/internal/logging/event_log_keys.h"
 #include "bat/ledger/internal/logging/event_log_util.h"
 #include "bat/ledger/internal/notifications/notification_keys.h"
-#include "bat/ledger/internal/request/post_connect/uphold/post_connect_uphold.h"
-#include "bat/ledger/internal/request/request_for.h"
 #include "bat/ledger/internal/uphold/uphold_util.h"
 #include "bat/ledger/internal/wallet/wallet_util.h"
 
-using ledger::request::RequestFor;
-using ledger::request::connect::PostConnectUphold;
+using ledger::endpoints::PostConnect;
+using ledger::endpoints::PostConnectUphold;
+using ledger::endpoints::RequestFor;
 using ledger::uphold::Capabilities;
 using ledger::wallet::OnWalletStatusChange;
 
@@ -216,13 +217,16 @@ void UpholdWallet::OnCreateCard(ledger::ResultCallback callback,
   if (RequestFor<PostConnectUphold> request{ledger_, std::move(id)}) {
     std::move(request).Send(std::move(on_connect));
   } else {
-    std::move(on_connect).Run(type::Result::LEDGER_ERROR);
+    std::move(on_connect)
+        .Run(base::unexpected(PostConnect::Error::FAILED_TO_CREATE_REQUEST));
   }
 }
 
 void UpholdWallet::OnConnectWallet(ledger::ResultCallback callback,
                                    std::string&& id,
-                                   type::Result result) const {
+                                   PostConnect::Response&& response) const {
+  const type::Result result = PostConnect::ResponseToResult(response);
+
   auto uphold_wallet = ledger_->uphold()->GetWallet();
   if (!uphold_wallet) {
     BLOG(0, "Uphold wallet is null!");
