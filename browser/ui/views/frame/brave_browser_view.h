@@ -15,6 +15,8 @@
 #include "brave/components/brave_vpn/buildflags/buildflags.h"
 #include "brave/components/sidebar/buildflags/buildflags.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
+#include "ui/views/animation/animation_builder.h"
+#include "ui/views/animation/widget_fade_animator.h"
 
 #if BUILDFLAG(ENABLE_BRAVE_VPN)
 #include "brave/browser/ui/views/toolbar/brave_vpn_panel_controller.h"
@@ -38,6 +40,10 @@ class SpeedreaderTabHelper;
 namespace content {
 class WebContents;
 }  // namespace content
+
+namespace views {
+class PulsingBlockView;
+}  // namespace views
 
 class BraveBrowser;
 class WalletButton;
@@ -72,6 +78,8 @@ class BraveBrowserView : public BrowserView {
   void ShowSpeedreaderWebUIBubble(Browser* browser) override;
   void HideSpeedreaderWebUIBubble() override;
 
+  void AddedToWidget() override;
+
 #if BUILDFLAG(ENABLE_SIDEBAR)
   views::View* sidebar_host_view() { return sidebar_host_view_; }
 #endif
@@ -100,6 +108,11 @@ class BraveBrowserView : public BrowserView {
   void OnPreferenceChanged(const std::string& pref_name);
   void OnWindowClosingConfirmResponse(bool allowed_to_close);
   BraveBrowser* GetBraveBrowser() const;
+
+  raw_ptr<views::PulsingBlockView> pulsing_block_view_ = nullptr;
+  std::unique_ptr<views::WidgetFadeAnimator> fade_animator_;
+  base::RepeatingTimer start_delay_timer_;
+  void DoAnimate() { fade_animator_->FadeOut(); }
 
 #if BUILDFLAG(ENABLE_SIDEBAR)
   sidebar::Sidebar* InitSidebar() override;

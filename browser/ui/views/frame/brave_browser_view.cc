@@ -16,6 +16,7 @@
 #include "brave/browser/ui/views/brave_actions/brave_shields_action_view.h"
 #include "brave/browser/ui/views/brave_shields/cookie_list_opt_in_bubble_host.h"
 #include "brave/browser/ui/views/location_bar/brave_location_bar_view.h"
+#include "brave/browser/ui/views/pulsing_block/pulsing_block_view.h"
 #include "brave/browser/ui/views/toolbar/bookmark_button.h"
 #include "brave/browser/ui/views/toolbar/brave_toolbar_view.h"
 #include "brave/browser/ui/views/toolbar/wallet_button.h"
@@ -30,6 +31,7 @@
 #include "chrome/browser/ui/views/toolbar/browser_app_menu_button.h"
 #include "extensions/buildflags/buildflags.h"
 #include "third_party/abseil-cpp/absl/types/optional.h"
+#include "ui/compositor/layer.h"
 #include "ui/events/event_observer.h"
 #include "ui/views/bubble/bubble_dialog_delegate_view.h"
 #include "ui/views/event_monitor.h"
@@ -197,6 +199,28 @@ BraveBrowserView::BraveBrowserView(std::unique_ptr<Browser> browser)
   // See the comments of BrowserView::find_bar_host_view().
   ReorderChildView(find_bar_host_view_, -1);
 #endif
+}
+
+void BraveBrowserView::AddedToWidget() {
+  BrowserView::AddedToWidget();
+  // we must call all new views once BraveBrowserView is added to widget
+  fade_animator_ = std::make_unique<views::WidgetFadeAnimator>(frame_);
+  fade_animator_->set_fade_out_duration(base::Milliseconds(1000));
+  pulsing_block_view_ =
+      AddChildView(std::make_unique<views::PulsingBlockView>(browser()));
+  // the position here should be an object to anchor on and responsive when the
+  // browser resizes
+  pulsing_block_view_->SetPosition({750, 26});
+  // start_delay_timer_.Start(
+  //   FROM_HERE,
+  //   base::Milliseconds(5000),
+  //   this,
+  //   &BraveBrowserView::DoAnimate
+  // );
+
+  // if (frame_) {
+  //   frame_->SetOpacity(0.8f);
+  // }
 }
 
 void BraveBrowserView::OnPreferenceChanged(const std::string& pref_name) {
