@@ -755,5 +755,6 @@ provideStrings({
   // NFTs Tab
   braveWalletNftsEmptyState: 'No NFTs found in your wallet. You can add NFTs by clicking the "+ Visible assets" button at the bottom of' +
     ' the "Portfolio" tab',
-  braveWalletNftsEmptyStateSearch: 'No NFTs matching search or filter found'
+  braveWalletNftsEmptyStateSearch: 'No NFTs matching search or filter found',
+  braveWalletNftFetchingError: 'Something went wrong when fetching NFT details. Please try again later.'
 })

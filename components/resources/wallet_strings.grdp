@@ -665,4 +665,5 @@
   <message name="IDS_BRAVE_WALLET_ENS_OFFCHAIN_PROCEED_WITH_NO" desc="Proceed with ENS offchain lookup answer">No</message>
   <message name="IDS_BRAVE_WALLET_ENS_OFFCHAIN_DONT_SHOW_AGAIN" desc="Proceed with ENS offchain lookup checkbox">Don't show this again</message>
   <message name="IDS_BRAVE_WALLET_ENS_OFFCHAIN_WARNING" desc="ENS offchain lookup warning line">Address resolution requires offchain network requests. Proceed?</message>
+  <message name="IDS_BRAVE_WALLET_NFT_FETCHING_ERROR" desc="Error message displayed when nft metadata is not successfully fetched">Something went wrong when fetching NFT details. Please try again later.</message>
 </grit-part>
