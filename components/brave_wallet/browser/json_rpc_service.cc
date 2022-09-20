@@ -221,10 +221,14 @@ void JsonRpcService::RequestInternal(
         base::NullCallback()) {
   DCHECK(network_url.is_valid());
 
+  LOG(ERROR) << "active wallet " << network_url << " " << json_payload;
+  auto headers = MakeCommonJsonRpcHeaders(json_payload);
+  for (auto [key, value] : headers) {
+    LOG(ERROR) << "active wallet " << key << " " << value;
+  }
   api_request_helper_->Request("POST", network_url, json_payload,
                                "application/json", auto_retry_on_network_change,
-                               std::move(callback),
-                               MakeCommonJsonRpcHeaders(json_payload), -1u,
+                               std::move(callback), headers, -1u,
                                std::move(conversion_callback));
 }
 

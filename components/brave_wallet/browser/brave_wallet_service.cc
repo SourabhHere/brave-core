@@ -867,6 +867,12 @@ void BraveWalletService::OnOnboardingShown() {
   RecordWalletUsage(false);
 }
 
+void BraveWalletService::RecordActiveWalletCountForP3A(
+    int count,
+    mojom::CoinType coin_type) {
+  brave_wallet_p3a_.RecordActiveWalletCount(count, coin_type);
+}
+
 void BraveWalletService::RecordWalletUsage(bool unlocked) {
   VLOG(1) << "Wallet P3A: starting report";
   base::Time wallet_last_used = prefs_->GetTime(kBraveWalletLastUnlockTime);

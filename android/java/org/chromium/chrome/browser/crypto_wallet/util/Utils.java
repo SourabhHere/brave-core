@@ -59,6 +59,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import org.chromium.base.ApiCompatibilityUtils;
+import org.chromium.base.CommandLine;
 import org.chromium.base.ContextUtils;
 import org.chromium.base.Log;
 import org.chromium.base.Predicate;
@@ -71,6 +72,7 @@ import org.chromium.brave_wallet.mojom.BraveWalletConstants;
 import org.chromium.brave_wallet.mojom.BraveWalletService;
 import org.chromium.brave_wallet.mojom.CoinType;
 import org.chromium.brave_wallet.mojom.JsonRpcService;
+import org.chromium.brave_wallet.mojom.KeyringService;
 import org.chromium.brave_wallet.mojom.NetworkInfo;
 import org.chromium.brave_wallet.mojom.ProviderError;
 import org.chromium.brave_wallet.mojom.TransactionInfo;
@@ -112,6 +114,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
@@ -153,6 +157,12 @@ public class Utils {
             BigInteger.ONE.shiftLeft(256).subtract(BigInteger.ONE);
 
     private static final int CLEAR_CLIPBOARD_INTERVAL = 60000; // In milliseconds
+
+    private static final List<String> KNOWN_TEST_CHAIN_IDS = Arrays.asList(
+            BraveWalletConstants.RINKEBY_CHAIN_ID, BraveWalletConstants.ROPSTEN_CHAIN_ID,
+            BraveWalletConstants.GOERLI_CHAIN_ID, BraveWalletConstants.KOVAN_CHAIN_ID,
+            BraveWalletConstants.LOCALHOST_CHAIN_ID, BraveWalletConstants.SOLANA_TESTNET,
+            BraveWalletConstants.SOLANA_DEVNET, BraveWalletConstants.FILECOIN_TESTNET);
 
     public static List<String> getRecoveryPhraseAsList(String recoveryPhrase) {
         String[] recoveryPhraseArray = recoveryPhrase.split(" ");
@@ -1545,6 +1555,72 @@ public class Utils {
                                 getBlockchainTokensBalancesContext.blockchainTokensBalances);
                     });
                 });
+    }
+
+    public static void reportActiveWalletsForP3A(BraveWalletBaseActivity activity) {
+        reportActiveCoinWalletsForP3A(activity, CoinType.ETH);
+        reportActiveCoinWalletsForP3A(activity, CoinType.SOL);
+        // TODO(djandries): Add Filecoin when implemented
+    }
+
+    private static void reportActiveCoinWalletsForP3A(
+            BraveWalletBaseActivity activity, int coinType) {
+        BraveWalletService braveWalletService = activity.getBraveWalletService();
+        KeyringService keyringService = activity.getKeyringService();
+        JsonRpcService jsonRpcService = activity.getJsonRpcService();
+        assert braveWalletService != null && keyringService != null && jsonRpcService != null;
+
+        boolean countTestNetworks = CommandLine.getInstance().hasSwitch(
+                BraveWalletConstants.P3A_COUNT_TEST_NETWORKS_SWITCH);
+
+        keyringService.getKeyringInfo(getKeyringForCoinType(coinType), keyringInfo -> {
+            jsonRpcService.getAllNetworks(coinType, networks -> {
+                ArrayList<NetworkInfo> relevantNetworks = new ArrayList<NetworkInfo>();
+                for (NetworkInfo net : networks) {
+                    // Exclude testnet chain data by default.
+                    // Testnet chain counting can be enabled via the
+                    // --p3a-count-wallet-test-networks switch
+                    if (countTestNetworks || !KNOWN_TEST_CHAIN_IDS.contains(net.chainId)) {
+                        relevantNetworks.add(net);
+                    }
+                }
+                AsyncUtils.MultiResponseHandler multiResponse =
+                        new AsyncUtils.MultiResponseHandler(relevantNetworks.size());
+                ArrayList<AsyncUtils.GetTxExtraInfoResponseContext> txExtraInfoResponses =
+                        new ArrayList<AsyncUtils.GetTxExtraInfoResponseContext>();
+                for (NetworkInfo net : relevantNetworks) {
+                    AsyncUtils.GetTxExtraInfoResponseContext ctx =
+                            new AsyncUtils.GetTxExtraInfoResponseContext(
+                                    multiResponse.singleResponseComplete);
+                    getTxExtraInfo(activity, net, keyringInfo.accountInfos, null, true, ctx);
+                    txExtraInfoResponses.add(ctx);
+                }
+                multiResponse.setWhenAllCompletedAction(() -> {
+                    HashSet<String> activeAddresses = new HashSet();
+                    for (AsyncUtils.GetTxExtraInfoResponseContext ctx : txExtraInfoResponses) {
+                        // If account has a non-zero native coin balance or blockchain token
+                        // balance, add the account address to the set.
+                        for (Map.Entry<String, Double> entry :
+                                ctx.nativeAssetsBalances.entrySet()) {
+                            if (entry.getValue() > 0.0d) {
+                                activeAddresses.add(entry.getKey());
+                            }
+                        }
+                        for (Map.Entry<String, HashMap<String, Double>> accEntry :
+                                ctx.blockchainTokensBalances.entrySet()) {
+                            for (Map.Entry<String, Double> tokenEntry :
+                                    accEntry.getValue().entrySet()) {
+                                if (tokenEntry.getValue() > 0.0d) {
+                                    activeAddresses.add(accEntry.getKey());
+                                }
+                            }
+                        }
+                    }
+                    braveWalletService.recordActiveWalletCountForP3a(
+                            activeAddresses.size(), coinType);
+                });
+            });
+        });
     }
 
     public static boolean isNativeToken(NetworkInfo selectedNetwork, BlockchainToken token) {

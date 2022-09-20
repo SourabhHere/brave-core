@@ -407,6 +407,9 @@ const string kFilecoinTestnetKeyringId = "filecoin_testnet";
 const string kSolanaKeyringId = "solana";
 const string kDefaultKeyringId = "default";
 
+const string kP3ACountTestNetworksSwitch = "p3a-count-wallet-test-networks";
+const string kP3ACountTestNetworksLoadTimeKey = "braveWalletP3ACountTestNetworks";
+
 enum FilecoinAddressProtocol {
   SECP256K1 = 1, // Represents the address SECP256K1 protocol
   BLS = 3 // Represents the address BLS protocol
@@ -1300,6 +1303,9 @@ interface BraveWalletService {
 
   // Called when onboarding is shown (for analytics)
   OnOnboardingShown();
+
+  // Called to report an active wallet count for P3A
+  RecordActiveWalletCountForP3A(int32 count, CoinType coin_type);
 };
 
 enum DefaultWallet {

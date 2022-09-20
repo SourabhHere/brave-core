@@ -16,6 +16,13 @@ class PrefService;
 
 namespace brave_wallet {
 
+constexpr char kEthActiveAccountHistogramName[] =
+    "Brave.Wallet.ActiveEthAccounts";
+constexpr char kSolActiveAccountHistogramName[] =
+    "Brave.Wallet.ActiveSolAccounts";
+constexpr char kFilActiveAccountHistogramName[] =
+    "Brave.Wallet.ActiveFilAccounts";
+
 class BraveWalletService;
 class KeyringService;
 
@@ -30,6 +37,13 @@ class BraveWalletP3A : public mojom::BraveWalletServiceObserver,
   ~BraveWalletP3A() override;
   BraveWalletP3A(const BraveWalletP3A&) = delete;
   BraveWalletP3A& operator=(BraveWalletP3A&) = delete;
+
+  void AddObservers();
+
+  void RecordActiveWalletCount(int count, mojom::CoinType coin_type);
+
+  void GetNetworksAndBalancesForActiveWalletCount();
+  void GetBalancesForActiveWalletCount();
 
   // KeyringServiceObserver
   void KeyringCreated(const std::string& keyring_id) override;
@@ -63,6 +77,8 @@ class BraveWalletP3A : public mojom::BraveWalletServiceObserver,
       wallet_service_observer_receiver_{this};
   mojo::Receiver<brave_wallet::mojom::KeyringServiceObserver>
       keyring_service_observer_receiver_{this};
+
+  base::flat_map<mojom::CoinType, base::flat_set<std::string>> active_accounts;
 };
 
 }  // namespace brave_wallet

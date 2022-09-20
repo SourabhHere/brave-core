@@ -218,6 +218,9 @@ class BraveWalletService : public KeyedService,
 
   void OnOnboardingShown() override;
 
+  void RecordActiveWalletCountForP3A(int count,
+                                     mojom::CoinType coin_type) override;
+
  private:
   friend class EthereumProviderImplUnitTest;
   friend class SolanaProviderImplUnitTest;

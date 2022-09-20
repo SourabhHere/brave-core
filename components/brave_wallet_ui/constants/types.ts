@@ -392,7 +392,7 @@ export interface GetNativeAssetBalancesPayload {
 }
 
 export interface GetBlockchainTokenBalanceReturnInfo {
-  balances: BraveWallet.JsonRpcService_GetERC20TokenBalance_ResponseParams[][]
+  balances: BalancePayload[][]
 }
 
 export interface GetFlattenedAccountBalancesReturnInfo {
