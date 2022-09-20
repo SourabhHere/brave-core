@@ -40,3 +40,9 @@ def get_first_check_name(scope):
         if key.startswith('Check') and callable(value):
             return key
     raise LookupError('Check* method not found in scope')
+
+
+def force_presubmit_error(output_api):
+    return override_utils.override_scope_variable(output_api,
+                                                  'PresubmitPromptWarning',
+                                                  output_api.PresubmitError)

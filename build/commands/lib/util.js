@@ -688,6 +688,7 @@ const util = {
           '--project_root=' + config.srcDir, '--base_branch=' + options.base
         ],
         cmd_options)
+    util.presubmit(options)
   },
 
   presubmit: (options = {}) => {
@@ -702,11 +703,14 @@ const util = {
     cmd_options.cwd = config.braveCoreDir
     cmd_options = mergeWithDefault(cmd_options)
     cmd = 'git'
-    args = ['cl', 'presubmit', options.base, '--force']
+    args = ['cl', 'presubmit', options.base, '--force', '--upload']
     if (options.all)
       args.push('--all')
     if (options.files)
       args.push('--files', options.files)
+    if (options.verbose) {
+      args.push(...Array(options.verbose).fill('--verbose'))
+    }
     util.run(cmd, args, cmd_options)
   },
 
