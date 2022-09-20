@@ -40,6 +40,8 @@
 #include "third_party/re2/src/re2/re2.h"
 #include "ui/base/l10n/l10n_util.h"
 
+#include "chrome/browser/net/system_network_context_manager.h"
+
 /* kBraveWalletKeyrings structure
  *
  * "filecoin":
@@ -1670,6 +1672,7 @@ void KeyringService::Lock() {
     observer->Locked();
   }
   StopAutoLockTimer();
+  //wallet_connect_client_.reset();
 }
 
 bool KeyringService::IsHardwareAccount(const std::string& address) const {
@@ -1687,6 +1690,10 @@ bool KeyringService::IsHardwareAccount(const std::string& address) const {
 
 void KeyringService::Unlock(const std::string& password,
                             KeyringService::UnlockCallback callback) {
+  wallet_connect_client_ =
+      std::make_unique<wallet_connect::WalletConnectClient>(
+          SystemNetworkContextManager::GetInstance()->GetContext());
+  wallet_connect_client_->Init(password);
   if (!ResumeKeyring(mojom::kDefaultKeyringId, password)) {
     encryptors_.erase(mojom::kDefaultKeyringId);
     std::move(callback).Run(false);
