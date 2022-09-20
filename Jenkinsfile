@@ -75,7 +75,7 @@ pipeline {
                                                 github('brave/devops', 'https')
                                             }
                                             // branch('${params.DEVOPS_BRANCH}')
-                                            branch('wknapik-asan-in-pr-builds-for-linux')
+                                            branch('wknapik-higher-parallelizm-in-upstream-tests')
                                         }
                                     }
                                     scriptPath("jenkins/jobs/browser/pr-brave-browser-${PLATFORM}.Jenkinsfile")
