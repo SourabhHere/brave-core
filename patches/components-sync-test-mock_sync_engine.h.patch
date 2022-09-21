@@ -1,0 +1,12 @@
+diff --git a/components/sync/test/mock_sync_engine.h b/components/sync/test/mock_sync_engine.h
+index 612a507afba20b4a6fc083fc4a7799b62ad8d2af..2091f7c641a3321d5c3146c8f8ae357b50fa2942 100644
+--- a/components/sync/test/mock_sync_engine.h
++++ b/components/sync/test/mock_sync_engine.h
+@@ -78,6 +78,7 @@ class MockSyncEngine : public SyncEngine {
+   MOCK_METHOD(void, OnCookieJarChanged, (bool, base::OnceClosure), (override));
+   MOCK_METHOD(void, SetInvalidationsForSessionsEnabled, (bool), (override));
+   MOCK_METHOD(void, GetNigoriNodeForDebugging, (AllNodesCallback), (override));
++  BRAVE_MOCK_SYNC_ENGINE_H_
+ };
+ 
+ }  // namespace syncer
