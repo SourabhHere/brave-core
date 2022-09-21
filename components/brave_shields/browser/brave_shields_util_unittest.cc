@@ -11,6 +11,7 @@
 #include "brave/components/brave_shields/browser/brave_shields_util.h"
 #include "brave/components/brave_shields/common/brave_shield_constants.h"
 #include "brave/components/brave_shields/common/features.h"
+#include "brave/components/constants/pref_names.h"
 #include "build/build_config.h"
 #include "chrome/browser/browser_process.h"
 #include "chrome/browser/content_settings/cookie_settings_factory.h"
@@ -23,6 +24,7 @@
 #include "components/content_settings/core/common/content_settings_types.h"
 #include "components/content_settings/core/common/pref_names.h"
 #include "components/prefs/pref_service.h"
+#include "components/sync_preferences/testing_pref_service_syncable.h"
 #include "content/public/test/browser_task_environment.h"
 #include "content/public/test/test_utils.h"
 #include "net/base/features.h"
@@ -740,6 +742,54 @@ TEST_F(BraveShieldsUtilTest, GetHTTPSEverywhereEnabled_ForOrigin) {
   // default is unchanged
   setting = brave_shields::GetHTTPSEverywhereEnabled(map, GURL());
   EXPECT_EQ(false, setting);
+}
+
+TEST_F(BraveShieldsUtilTest, IsHTTPSEverywhereManaged) {
+  EXPECT_FALSE(brave_shields::IsHTTPSEverywhereManaged(
+      profile()->GetTestingPrefService()));
+  profile()->GetTestingPrefService()->SetManagedPref(
+      kManagedHTTPSEverywhereDefault,
+      std::make_unique<base::Value>(CONTENT_SETTING_BLOCK));
+  EXPECT_TRUE(brave_shields::IsHTTPSEverywhereManaged(
+      profile()->GetTestingPrefService()));
+}
+
+TEST_F(BraveShieldsUtilTest, SetHTTPSEverywhereEnabled_DefaultManaged) {
+  profile()->GetTestingPrefService()->SetManagedPref(
+      kManagedHTTPSEverywhereDefault,
+      std::make_unique<base::Value>(CONTENT_SETTING_BLOCK));
+  auto* map = HostContentSettingsMapFactory::GetForProfile(profile());
+
+  /* try to enable */
+  brave_shields::SetHTTPSEverywhereEnabled(map, true, GURL());
+  auto setting = map->GetContentSetting(
+      GURL(), GURL(), ContentSettingsType::BRAVE_HTTP_UPGRADABLE_RESOURCES);
+  /* managed value overrides others */
+  EXPECT_EQ(CONTENT_SETTING_BLOCK, setting);
+
+  // all origins
+  setting = map->GetContentSetting(
+      GURL("http://brave.com"), GURL(),
+      ContentSettingsType::BRAVE_HTTP_UPGRADABLE_RESOURCES);
+  /* managed value overrides others */
+  EXPECT_EQ(CONTENT_SETTING_BLOCK, setting);
+
+  profile()->GetTestingPrefService()->SetManagedPref(
+      kManagedHTTPSEverywhereDefault,
+      std::make_unique<base::Value>(CONTENT_SETTING_ALLOW));
+
+  /* try to disable */
+  brave_shields::SetHTTPSEverywhereEnabled(map, false, GURL());
+  setting = map->GetContentSetting(
+      GURL(), GURL(), ContentSettingsType::BRAVE_HTTP_UPGRADABLE_RESOURCES);
+  /* managed value overrides others */
+  EXPECT_EQ(CONTENT_SETTING_ALLOW, setting);
+
+  // all origins
+  setting = map->GetContentSetting(
+      GURL("http://brave.com"), GURL(),
+      ContentSettingsType::BRAVE_HTTP_UPGRADABLE_RESOURCES);
+  EXPECT_EQ(CONTENT_SETTING_ALLOW, setting);
 }
 
 /* NOSCRIPT CONTROL */

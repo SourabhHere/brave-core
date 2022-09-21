@@ -5,6 +5,7 @@
 
 #include "chrome/browser/policy/configuration_policy_handler_list_factory.h"
 
+#include "brave/components/constants/pref_names.h"
 #include "brave/components/ipfs/buildflags/buildflags.h"
 #include "brave/components/tor/buildflags/buildflags.h"
 #include "build/build_config.h"
@@ -40,6 +41,8 @@ const policy::PolicyToPreferenceMapEntry kBraveSimplePolicyMap[] = {
 #if BUILDFLAG(ENABLE_IPFS)
     {policy::key::kIPFSEnabled, kIPFSEnabled, base::Value::Type::BOOLEAN},
 #endif
+    {policy::key::kHTTPSEverywhereDefault, kManagedHTTPSEverywhereDefault,
+     base::Value::Type::INTEGER}
 };
 
 }  // namespace
