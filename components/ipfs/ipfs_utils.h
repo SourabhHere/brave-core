@@ -9,6 +9,7 @@
 #include <string>
 
 #include "components/version_info/channel.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "url/gurl.h"
 
 class PrefService;
@@ -64,6 +65,7 @@ bool IsIpfsResolveMethodDisabled(PrefService* prefs);
 bool IsIpfsResolveMethodAsk(PrefService* prefs);
 std::string GetRegistryDomainFromIPNS(const GURL& url);
 bool IsValidCIDOrDomain(const std::string& value);
+absl::optional<GURL> TranslateToCurrentGatewayUrl(const GURL& url);
 
 }  // namespace ipfs
 
