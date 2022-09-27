@@ -35,14 +35,14 @@ TEST_F(BatAdsCreateConfirmationUrlRequestBuilderTest,
 
   SetEnvironmentTypeForTesting(EnvironmentType::kStaging);
 
-  privacy::SetUnblindedTokens(1);
+  privacy::BuildAndSetUnblindedTokens(/*count*/ 1);
 
   MockBuildChannel(BuildChannelType::kRelease);
 
   MockLocaleHelper(locale_helper_mock_, "en-US");
 
   const absl::optional<ConfirmationInfo> confirmation = BuildConfirmation();
-  CHECK(confirmation);
+  ASSERT_TRUE(confirmation);
   CreateConfirmationUrlRequestBuilder url_request_builder(*confirmation);
 
   // Act
@@ -68,14 +68,14 @@ TEST_F(BatAdsCreateConfirmationUrlRequestBuilderTest,
 
   SetEnvironmentTypeForTesting(EnvironmentType::kStaging);
 
-  privacy::SetUnblindedTokens(1);
+  privacy::BuildAndSetUnblindedTokens(/*count*/ 1);
 
   MockBuildChannel(BuildChannelType::kRelease);
 
   MockLocaleHelper(locale_helper_mock_, "en-AS");
 
   const absl::optional<ConfirmationInfo> confirmation = BuildConfirmation();
-  CHECK(confirmation);
+  ASSERT_TRUE(confirmation);
   CreateConfirmationUrlRequestBuilder url_request_builder(*confirmation);
 
   // Act
@@ -101,14 +101,14 @@ TEST_F(BatAdsCreateConfirmationUrlRequestBuilderTest,
 
   SetEnvironmentTypeForTesting(EnvironmentType::kStaging);
 
-  privacy::SetUnblindedTokens(1);
+  privacy::BuildAndSetUnblindedTokens(/*count*/ 1);
 
   MockBuildChannel(BuildChannelType::kRelease);
 
   MockLocaleHelper(locale_helper_mock_, "en-KY");
 
   const absl::optional<ConfirmationInfo> confirmation = BuildConfirmation();
-  CHECK(confirmation);
+  ASSERT_TRUE(confirmation);
   CreateConfirmationUrlRequestBuilder url_request_builder(*confirmation);
 
   // Act
@@ -134,14 +134,14 @@ TEST_F(BatAdsCreateConfirmationUrlRequestBuilderTest,
 
   SetEnvironmentTypeForTesting(EnvironmentType::kStaging);
 
-  privacy::SetUnblindedTokens(1);
+  privacy::BuildAndSetUnblindedTokens(/*count*/ 1);
 
   MockBuildChannel(BuildChannelType::kNightly);
 
   MockLocaleHelper(locale_helper_mock_, "en-US");
 
   const absl::optional<ConfirmationInfo> confirmation = BuildConfirmation();
-  CHECK(confirmation);
+  ASSERT_TRUE(confirmation);
   CreateConfirmationUrlRequestBuilder url_request_builder(*confirmation);
 
   // Act
@@ -167,14 +167,14 @@ TEST_F(BatAdsCreateConfirmationUrlRequestBuilderTest,
 
   SetEnvironmentTypeForTesting(EnvironmentType::kStaging);
 
-  privacy::SetUnblindedTokens(1);
+  privacy::BuildAndSetUnblindedTokens(/*count*/ 1);
 
   MockBuildChannel(BuildChannelType::kNightly);
 
   MockLocaleHelper(locale_helper_mock_, "en-AS");
 
   const absl::optional<ConfirmationInfo> confirmation = BuildConfirmation();
-  CHECK(confirmation);
+  ASSERT_TRUE(confirmation);
   CreateConfirmationUrlRequestBuilder url_request_builder(*confirmation);
 
   // Act
@@ -200,14 +200,14 @@ TEST_F(BatAdsCreateConfirmationUrlRequestBuilderTest,
 
   SetEnvironmentTypeForTesting(EnvironmentType::kStaging);
 
-  privacy::SetUnblindedTokens(1);
+  privacy::BuildAndSetUnblindedTokens(/*count*/ 1);
 
   MockBuildChannel(BuildChannelType::kNightly);
 
   MockLocaleHelper(locale_helper_mock_, "en-KY");
 
   const absl::optional<ConfirmationInfo> confirmation = BuildConfirmation();
-  CHECK(confirmation);
+  ASSERT_TRUE(confirmation);
   CreateConfirmationUrlRequestBuilder url_request_builder(*confirmation);
 
   // Act
@@ -233,14 +233,14 @@ TEST_F(BatAdsCreateConfirmationUrlRequestBuilderTest,
 
   SetEnvironmentTypeForTesting(EnvironmentType::kStaging);
 
-  privacy::SetUnblindedTokens(1);
+  privacy::BuildAndSetUnblindedTokens(/*count*/ 1);
 
   MockBuildChannel(BuildChannelType::kRelease);
 
   MockLocaleHelper(locale_helper_mock_, "en-US");
 
   const absl::optional<ConfirmationInfo> confirmation = BuildConfirmation();
-  CHECK(confirmation);
+  ASSERT_TRUE(confirmation);
   CreateConfirmationUrlRequestBuilder url_request_builder(*confirmation);
 
   // Act
@@ -266,14 +266,14 @@ TEST_F(BatAdsCreateConfirmationUrlRequestBuilderTest,
 
   SetEnvironmentTypeForTesting(EnvironmentType::kStaging);
 
-  privacy::SetUnblindedTokens(1);
+  privacy::BuildAndSetUnblindedTokens(/*count*/ 1);
 
   MockBuildChannel(BuildChannelType::kRelease);
 
   MockLocaleHelper(locale_helper_mock_, "en-AS");
 
   const absl::optional<ConfirmationInfo> confirmation = BuildConfirmation();
-  CHECK(confirmation);
+  ASSERT_TRUE(confirmation);
   CreateConfirmationUrlRequestBuilder url_request_builder(*confirmation);
 
   // Act
@@ -299,14 +299,14 @@ TEST_F(BatAdsCreateConfirmationUrlRequestBuilderTest,
 
   SetEnvironmentTypeForTesting(EnvironmentType::kStaging);
 
-  privacy::SetUnblindedTokens(1);
+  privacy::BuildAndSetUnblindedTokens(/*count*/ 1);
 
   MockBuildChannel(BuildChannelType::kRelease);
 
   MockLocaleHelper(locale_helper_mock_, "en-KY");
 
   const absl::optional<ConfirmationInfo> confirmation = BuildConfirmation();
-  CHECK(confirmation);
+  ASSERT_TRUE(confirmation);
   CreateConfirmationUrlRequestBuilder url_request_builder(*confirmation);
 
   // Act
@@ -332,14 +332,14 @@ TEST_F(BatAdsCreateConfirmationUrlRequestBuilderTest,
 
   SetEnvironmentTypeForTesting(EnvironmentType::kStaging);
 
-  privacy::SetUnblindedTokens(1);
+  privacy::BuildAndSetUnblindedTokens(/*count*/ 1);
 
   MockBuildChannel(BuildChannelType::kNightly);
 
   MockLocaleHelper(locale_helper_mock_, "en-US");
 
   const absl::optional<ConfirmationInfo> confirmation = BuildConfirmation();
-  CHECK(confirmation);
+  ASSERT_TRUE(confirmation);
   CreateConfirmationUrlRequestBuilder url_request_builder(*confirmation);
 
   // Act
@@ -365,14 +365,14 @@ TEST_F(BatAdsCreateConfirmationUrlRequestBuilderTest,
 
   SetEnvironmentTypeForTesting(EnvironmentType::kStaging);
 
-  privacy::SetUnblindedTokens(1);
+  privacy::BuildAndSetUnblindedTokens(/*count*/ 1);
 
   MockBuildChannel(BuildChannelType::kNightly);
 
   MockLocaleHelper(locale_helper_mock_, "en-AS");
 
   const absl::optional<ConfirmationInfo> confirmation = BuildConfirmation();
-  CHECK(confirmation);
+  ASSERT_TRUE(confirmation);
   CreateConfirmationUrlRequestBuilder url_request_builder(*confirmation);
 
   // Act
@@ -398,14 +398,14 @@ TEST_F(BatAdsCreateConfirmationUrlRequestBuilderTest,
 
   SetEnvironmentTypeForTesting(EnvironmentType::kStaging);
 
-  privacy::SetUnblindedTokens(1);
+  privacy::BuildAndSetUnblindedTokens(/*count*/ 1);
 
   MockBuildChannel(BuildChannelType::kNightly);
 
   MockLocaleHelper(locale_helper_mock_, "en-KY");
 
   const absl::optional<ConfirmationInfo> confirmation = BuildConfirmation();
-  CHECK(confirmation);
+  ASSERT_TRUE(confirmation);
   CreateConfirmationUrlRequestBuilder url_request_builder(*confirmation);
 
   // Act
