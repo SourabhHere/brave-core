@@ -94,7 +94,7 @@
     Can't download speech files. Try again later.
   </message>
   <message name="IDS_SETTINGS_CAPTIONS_LIVE_CAPTION_DOWNLOAD_ERROR_REBOOT_REQUIRED" desc="Error message shown when a OS reboot is required to install the Live Caption files.">
-    Restart needed to install speech files.
+    Can't install speech files. Your device needs to be updated. Restart your device and try again.
   </message>
   <message name="IDS_SETTINGS_ENABLE_CARET_BROWSING_TITLE" desc="Name of the setting to enable Caret Browsing, which allows you to move around any web page using a text caret.">
     Navigate pages with a text cursor
@@ -670,6 +670,18 @@
      =1 {To keep your passwords safe, Brave Password Manager locks after 1 minute of inactivity}
      other {To keep your passwords safe, Brave Password Manager locks after {NUM_MINS} minutes of inactivity}}
   </message>
+  <message name="IDS_SETTINGS_PASSKEYS_LENGTH_ERROR" desc="Error message in the passkey edit dialog when the user inputs an empty username.">
+    Enter your username
+  </message>
+  <message name="IDS_SETTINGS_PASSKEYS_SITE_LABEL" desc="Label for the website URL in the passkey edit dialog.">
+    Site
+  </message>
+  <message name="IDS_SETTINGS_PASSKEYS_DIALOG_TITLE" desc="Title for the passkey edit dialog.">
+    Edit passkey
+  </message>
+  <message name="IDS_SETTINGS_PASSKEYS_EDIT_DIALOG_FOOTNOTE" desc="Footnote for the passkey edit dialog.">
+    When you edit your passkey, your <ph name="RP_ID">$1<ex>relyingPartyId</ex></ph> account won't change
+  </message>
   <message name="IDS_SETTINGS_GOT_IT" desc="Label for the button to acknowledge the information in a dialog and dismiss it.">
     Got it
   </message>
@@ -926,25 +938,31 @@
   </message>
 
   <if expr="is_win or is_macosx">
-    <message name="IDS_AUTOFILL_MANAGE_PASSKEYS_LABEL" desc="The label on a button that a user can click in order to see and delete passkeys saved on their computer. For consistency, the word 'passkey' is in the glossery with translations already suggested.">
+    <message name="IDS_AUTOFILL_MANAGE_PASSKEYS_LABEL" desc="The label on a button that a user can click in order to see and delete passkeys saved on their computer. For consistency, the word 'passkey' is in the glossary with translations already suggested.">
       Manage passkeys
     </message>
-    <message name="IDS_AUTOFILL_MANAGE_PASSKEYS_NO_SUPPORT" desc="An error message that appears when the user's version of Microsoft Windows is too old and doesn't support managing passkeys. For consistency, the word 'passkey' is in the glossery with translations already suggested">
+    <message name="IDS_AUTOFILL_MANAGE_PASSKEYS_NO_SUPPORT" desc="An error message that appears when the user's version of Microsoft Windows is too old and doesn't support managing passkeys. For consistency, the word 'passkey' is in the glossary with translations already suggested">
       To manage passkeys, use a newer version of Windows
     </message>
-    <message name="IDS_AUTOFILL_MANAGE_PASSKEYS_TITLE" desc="The title on a page where the user can see and delete passkeys saved on their computer. For consistency, the word 'passkey' is in the glossery with translations already suggested.">
+    <message name="IDS_AUTOFILL_MANAGE_PASSKEYS_TITLE" desc="The title on a page where the user can see and delete passkeys saved on their computer. For consistency, the word 'passkey' is in the glossary with translations already suggested.">
       Passkeys
     </message>
-    <message name="IDS_AUTOFILL_MANAGE_PASSKEYS_SUB_TITLE" desc="A warning on a page where the user can see and delete passkeys saved on their computer. It communicates that the passkeys shown are stored in Windows Hello, which is a Microsoft product name, and not in the user's Brave account. For consistency, the word 'passkey' is in the glossery with translations already suggested.">
+    <message name="IDS_AUTOFILL_MANAGE_PASSKEYS_SUB_TITLE" desc="A warning on a page where the user can see and delete passkeys saved on their computer. It communicates that the passkeys shown are stored in Windows Hello, which is a Microsoft product name, and not in the user's Brave account. For consistency, the word 'passkey' is in the glossary with translations already suggested.">
       These passkeys are stored in Windows Hello on this computer. They aren't saved to your Brave sync chain.
     </message>
-    <message name="IDS_AUTOFILL_MANAGE_PASSKEYS_SEARCH" desc="The label on a field that a user can use to search within a list of passkeys. For consistency, the word 'passkey' is in the glossery with translations already suggested.">
+    <message name="IDS_AUTOFILL_MANAGE_PASSKEYS_SEARCH" desc="The label on a field that a user can use to search within a list of passkeys. For consistency, the word 'passkey' is in the glossary with translations already suggested.">
       Search passkeys
     </message>
-    <message name="IDS_AUTOFILL_MANAGE_PASSKEYS_CANNOT_DELETE_TITLE" desc="The title of a dialog shown when Brave fails to delete a passkey. For consistency, the word 'passkey' is in the glossery with translations already suggested.">
+    <message name="IDS_AUTOFILL_MANAGE_PASSKEYS_DELETE_CONFIRMATION_TITLE" desc="The title of a dialog that asks the user to confirm the deletion of a passkey. For consistency, the word 'passkey' is in the glossary with translations already suggested.">
+      Delete passkey
+    </message>
+    <message name="IDS_AUTOFILL_MANAGE_PASSKEYS_DELETE_CONFIRMATION_DESCRIPTION" desc="The body of a dialog that asks the user to confirm the deletion of a passkey. For consistency, the word 'passkey' is in the glossary with translations already suggested.">
+      Are you sure you want to delete this passkey?
+    </message>
+    <message name="IDS_AUTOFILL_MANAGE_PASSKEYS_CANNOT_DELETE_TITLE" desc="The title of a dialog shown when Brave fails to delete a passkey. For consistency, the word 'passkey' is in the glossary with translations already suggested.">
       Can't delete passkey
     </message>
-    <message name="IDS_AUTOFILL_MANAGE_PASSKEYS_CANNOT_DELETE_BODY" desc="The body of a dialog that explains that we cannot delete certain passkeys on Windows which are involved when the user signs into the Windows computer itself. For consistency, the word 'passkey' is in the glossery with translations already suggested.">
+    <message name="IDS_AUTOFILL_MANAGE_PASSKEYS_CANNOT_DELETE_BODY" desc="The body of a dialog that explains that we cannot delete certain passkeys on Windows which are involved when the user signs into the Windows computer itself. For consistency, the word 'passkey' is in the glossary with translations already suggested.">
       You need this passkey to sign in to your computer
     </message>
   </if>
@@ -1396,6 +1414,21 @@
   </message>
   <message name="IDS_SETTINGS_PERFORMANCE_HIGH_EFFICIENCY_MODE_SETTING" desc="High efficiency mode setting label">
     Memory Saver
+  </message>
+  <message name="IDS_SETTINGS_PERFORMANCE_TAB_DISCARDING_EXCEPTIONS_HEADER" desc="Heading for the exceptions list for tab discarding in the performance settings. Tabs will not be discarded by high efficiency mode if on a site matching a rule in this list.">
+    Always keep these sites active
+  </message>
+  <message name="IDS_SETTINGS_BATTERY_PAGE_TITLE" desc="Title of the battery page">
+    Battery
+  </message>
+  <message name="IDS_SETTINGS_PERFORMANCE_BATTERY_SAVER_MODE_SETTING" desc="Battery saver mode setting label">
+    Battery Saver
+  </message>
+  <message name="IDS_SETTINGS_PERFORMANCE_BATTERY_SAVER_MODE_ON_BATTERY_LABEL" desc="Label for the battery saver mode enabled when unplugged option">
+    Turn on when my computer is unplugged
+  </message>
+  <message name="IDS_SETTINGS_PERFORMANCE_BATTERY_SAVER_MODE_BELOW_THRESHOLD_LABEL" desc="Label for the battery saver mode enabled only when battery is low option">
+    Turn on only when my battery is low
   </message>
 
   <!-- Languages Page -->
@@ -3351,6 +3384,9 @@
   </message>
   <message name="IDS_SETTINGS_SITE_SETTINGS_CLEAR_DISPLAYED_STORAGE_DIALOG_TITLE" desc="Title of the dialog that warns about deleting displayed site data.">
     Clear displayed data?
+  </message>
+  <message name="IDS_SETTINGS_SITE_SETTINGS_FIRST_PARTY_SETS_LEARN_MORE" translateable="false" desc="Placeholder string for first party sets informational learn more link shown when sites are filtered by first party set owner">
+     These sites are in <ph name="FPS_OWNER">$1<ex>google.com</ex></ph>'s group of sites that can see your activity in the group. <ph name="LINK_BEGIN">&lt;a&gt;</ph>Learn more<ph name="LINK_END">&lt;/a&gt;</ph>
   </message>
   <message name="IDS_SETTINGS_SITE_SETTINGS_CLEAR_ALL_STORAGE_DESCRIPTION" desc="Label describing how much total disk space chrome is using, next to the clear all button">
     Total storage used by sites: <ph name="TOTAL_USAGE">$1<ex>8 GB</ex></ph>

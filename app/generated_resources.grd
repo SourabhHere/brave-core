@@ -2536,6 +2536,9 @@ are declared in tools/grit/grit_rule.gni.
       <message name="IDS_DOWNLOAD_BUBBLE_SUBPAGE_SUMMARY_COOKIE_THEFT" desc="Subpage summary for cookie theft warning.">
         This file contains malware that can compromise your personal or social network accounts
       </message>
+      <message name="IDS_DOWNLOAD_BUBBLE_SUBPAGE_SUMMARY_COOKIE_THEFT_AND_ACCOUNT" desc="Subpage summary for cookie theft warning with account info.">
+        This file contains malware that can compromise your personal or social network accounts, including <ph name="USER_EMAIL">$1<ex>john@google.com</ex></ph>
+      </message>
 
       <!-- Desktop omnibox PWA install icon -->
       <if expr="not is_android">
@@ -7276,6 +7279,15 @@ Keep your key file in a safe place. You will need it to create new versions of y
       <message name="IDS_BATTERY_SAVER_MODE_PROMO_ACTION_TEXT" desc="The custom action button text for the battery saver mode in-product promo bubble.">
         Settings
       </message>
+      <message name="IDS_HIGH_EFFICIENCY_INFO_MODE_PROMO_ACTION_TEXT" desc="The custom action button text for the high efficiency info mode in-product promo bubble.">
+        Settings
+      </message>
+      <message name="IDS_HIGH_EFFICIENCY_MODE_PROMO_TEXT" desc="The text shown for the high efficiency mode in-product promo bubble">
+        Memory Saver can reclaim memory from inactive tabs. This frees up your computer's resources for other tasks.
+      </message>
+      <message name="IDS_HIGH_EFFICIENCY_MODE_PROMO_ACTION_TEXT" desc="The custom action button text for the high efficiency mode in-product promo bubble">
+        Turn on
+      </message>
 
       <!-- User Education Tutorial Strings -->
       <if expr="use_titlecase">
@@ -7527,6 +7539,9 @@ Check your passwords anytime in <ph name="GOOGLE_PASSWORD_MANAGER">$1<ex>Brave P
         <message name="IDS_PASSWORD_MANAGER_TOOLTIP_MOVE" desc="Text for the 'Manage Passwords' icon's 'move password to account' state">
           Move your password
         </message>
+        <message name="IDS_PASSWORD_MANAGER_TOOLTIP_PROTECT" desc="Text for the 'Manage Passwords' icon's 'protect passwords' state">
+          Protect your passwords
+        </message>
         <message name="IDS_PASSWORD_MANAGER_IMPORT_DIALOG_TITLE" desc="The title of the file selection dialog for importing passwords">
           Import Passwords To Brave
         </message>
@@ -7615,6 +7630,9 @@ Check your passwords anytime in <ph name="GOOGLE_PASSWORD_MANAGER">$1<ex>Brave P
         </message>
         <message name="IDS_PASSWORD_MESSAGE_NEVER_SAVE_MENU_ITEM" desc="Mobile: Label for 'Save Password' prompt cogwheel menu button via which users can tell the password manager to never offer to save passwords for the current site[CHAR_LIMIT=32]">
           Never for this site
+        </message>
+        <message name="IDS_PASSWORD_MESSAGE_EDIT_PASSWORD_MENU_ITEM" desc="Mobile: Label for 'Save Password' prompt cogwheel menu button via which users can tell the password manager to show the password edit dialog.">
+          Edit password
         </message>
       </if>
 
@@ -8944,6 +8962,42 @@ Check your passwords anytime in <ph name="GOOGLE_PASSWORD_MANAGER">$1<ex>Brave P
         <message name="IDS_BROWSER_SHARING_SCREENSHOT_IMAGE_EDITOR_BUTTON_COPY" desc="The button text for the image editor's copy to clipboard button.">
           Copy to Clipboard
         </message>
+        <message name="IDS_BROWSER_SHARING_SCREENSHOT_IMAGE_EDITOR_TITLE" desc="The text for the image editor's dedicated page title.">
+          Screenshot Image Editor
+        </message>
+        <message name="IDS_BROWSER_SHARING_SCREENSHOT_IMAGE_EDITOR_BUTTON_TEXT_CLEAR" desc="The text for the image editor's clear canvas button.">
+          Clear Canvas
+        </message>
+        <message name="IDS_BROWSER_SHARING_SCREENSHOT_IMAGE_EDITOR_TOOLTIP_ALIGN_LEFT" desc="The text for the image editor's text align-left radio button.">
+          Align left
+        </message>
+        <message name="IDS_BROWSER_SHARING_SCREENSHOT_IMAGE_EDITOR_TOOLTIP_ALIGN_CENTER" desc="The text for the image editor's text align-center radio button.">
+          Align center
+        </message>
+        <message name="IDS_BROWSER_SHARING_SCREENSHOT_IMAGE_EDITOR_TOOLTIP_ALIGN_RIGHT" desc="The text for the image editor's text align-right radio button.">
+          Align right
+        </message>
+        <message name="IDS_BROWSER_SHARING_SCREENSHOT_IMAGE_EDITOR_TOOLTIP_SHADOW_NONE" desc="The text for the image editor's text no shadow radio button.">
+          No shadow
+        </message>
+        <message name="IDS_BROWSER_SHARING_SCREENSHOT_IMAGE_EDITOR_TOOLTIP_SHADOW_SMALL" desc="The text for the image editor's text small shadow radio button.">
+          Small shadow
+        </message>
+        <message name="IDS_BROWSER_SHARING_SCREENSHOT_IMAGE_EDITOR_TOOLTIP_SHADOW_LARGE" desc="The text for the image editor's text large shadow radio button.">
+          Large shadow
+        </message>
+        <message name="IDS_BROWSER_SHARING_SCREENSHOT_IMAGE_EDITOR_TOOLTIP_FONT_DEFAULT" desc="The text for the image editor's text default font selector.">
+          Default font
+        </message>
+        <message name="IDS_BROWSER_SHARING_SCREENSHOT_IMAGE_EDITOR_TOOLTIP_FONT_MONOSPACE" desc="The text for the image editor's text monospace font selector.">
+          Monospace font
+        </message>
+        <message name="IDS_BROWSER_SHARING_SCREENSHOT_IMAGE_EDITOR_TOOLTIP_FONT_ITALIC" desc="The text for the image editor's text italic font selector.">
+          Italic font
+        </message>
+        <message name="IDS_BROWSER_SHARING_SCREENSHOT_IMAGE_EDITOR_TOOLTIP_FONT_OUTLINE" desc="The text for the image editor's text outlne font selector.">
+          Outline font
+        </message>
       </if>
 
       <!-- Clipboard History Menu feature. -->
@@ -9083,6 +9137,11 @@ Check your passwords anytime in <ph name="GOOGLE_PASSWORD_MANAGER">$1<ex>Brave P
       </message>
       <message name="IDS_COLLECTED_COOKIES_PARTITIONED_COOKIE" desc="The string used to identify cookies which have been partitioned based on the current site, and so are not available for use on different sites.">
         Partitioned
+      </message>
+
+      <!-- Page specific site data dialog (redesign of Collected cookies window) -->
+      <message name="IDS_PAGE_SPECIFIC_SITE_DATA_DIALOG_EMPTY_STATE_LABEL" desc="The text used to explain to users that there are no cookies set and that this is the place where they will be shown. The label is shown in the `Cookies and site data` dialog.">
+        If a site uses cookies, it will appear here
       </message>
 
       <!-- Accessiblility strings for Infobars in Views -->
@@ -11279,6 +11338,12 @@ Please help our engineers fix this problem. Tell us what happened right before y
       </message>
       <message name="IDS_DESKTOP_MEDIA_PICKER_MANAGED" desc="Text to display when picker choices have been limited by enterprise policies.">
         Options for sharing are managed by your organization. Some items may be hidden.
+      </message>
+      <message name="IDS_DESKTOP_MEDIA_PICKER_RESELECT_SCREEN" desc="Text for a button appearing on the window picker dialog which is displayed when there is a secondary, system-level picker in which the user must select the content to share. Clicking this button will re-open the picker to allow the user to choose a new monitor/desktop/screen to share.">
+        Choose a different screen
+      </message>
+      <message name="IDS_DESKTOP_MEDIA_PICKER_RESELECT_WINDOW" desc="Text for a button appearing on the window picker dialog which is displayed when there is a secondary, system-level picker in which the user must select the content to share. Clicking this button will re-open the picker to allow the user to choose a new window to share.">
+        Choose a different window
       </message>
       <if expr="toolkit_views">
         <message name="IDS_DESKTOP_MEDIA_PICKER_SOURCE_TYPE_THIS_TAB" desc="Text for one of the dialog-tabs on the media picker dialog. This dialog-tab controls sharing the current tab.">
