@@ -1,5 +1,5 @@
 diff --git a/extensions/browser/api/web_request/web_request_api.cc b/extensions/browser/api/web_request/web_request_api.cc
-index 6d4af39e1575043ebc433aeb38a7fdac4247d608..79d9ddf91a411edc0e7f6a17b5eaf1cdc5c55424 100644
+index ba9ad0f8f128e273f8cbe353dbe7433acba2854d..5a076b4226703d185af4970e0a187c1b28165a9f 100644
 --- a/extensions/browser/api/web_request/web_request_api.cc
 +++ b/extensions/browser/api/web_request/web_request_api.cc
 @@ -1385,6 +1385,9 @@ ExtensionWebRequestEventRouter::OnAuthRequired(

@@ -1,5 +1,5 @@
 diff --git a/third_party/blink/common/client_hints/client_hints.cc b/third_party/blink/common/client_hints/client_hints.cc
-index 0d7256656f6753dee77cf948f17e24fdc5493238..50cffe933b01a48ade914582a8d1f7d6a5ed35ba 100644
+index 1825b541a4cb4449e9dfd1d8604a0aa051e3a4b4..c45b9640d4a7e3017fcd1e181bdba9fe76b54a43 100644
 --- a/third_party/blink/common/client_hints/client_hints.cc
 +++ b/third_party/blink/common/client_hints/client_hints.cc
 @@ -111,6 +111,7 @@ const size_t kWebEffectiveConnectionTypeMappingCount =

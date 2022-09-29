@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
-index 5b8477a22f9a00e5855f750ac0a6afa482e31a00..e03b19401b526cb104df2c3cbc5140fd0cb4f095 100644
+index 4a3a155ef8a358131196e8dad8ba98a94e9a4b2c..40c80aa5a8f5f927b19516f1650661072d03a149 100644
 --- a/chrome/browser/prefs/browser_prefs.cc
 +++ b/chrome/browser/prefs/browser_prefs.cc
-@@ -1251,6 +1251,8 @@ void RegisterLocalState(PrefRegistrySimple* registry) {
+@@ -1222,6 +1222,8 @@ void RegisterLocalState(PrefRegistrySimple* registry) {
    DeviceOAuth2TokenStoreDesktop::RegisterPrefs(registry);
  #endif
  
@@ -11,7 +11,7 @@ index 5b8477a22f9a00e5855f750ac0a6afa482e31a00..e03b19401b526cb104df2c3cbc5140fd
  #if BUILDFLAG(ENABLE_SCREEN_AI_SERVICE)
    screen_ai::RegisterLocalStatePrefs(registry);
  #endif  // BUILDFLAG(ENABLE_SCREEN_AI_SERVICE)
-@@ -1614,6 +1616,7 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
+@@ -1589,6 +1591,7 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
  #if !BUILDFLAG(IS_ANDROID)
    registry->RegisterIntegerPref(prefs::kHighEfficiencyChipExpandedCount, 0);
  #endif
