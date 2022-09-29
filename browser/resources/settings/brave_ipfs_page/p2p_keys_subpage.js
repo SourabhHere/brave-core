@@ -7,7 +7,6 @@ import {WebUIListenerBehavior} from 'chrome://resources/cr_elements/web_ui_liste
 
 import {Router} from '../router.js';
 import {BraveIPFSBrowserProxyImpl} from './brave_ipfs_browser_proxy.m.js';
-import {assert} from 'chrome://resources/js/assert.m.js';
 
 (function() {
   'use strict';
