@@ -43,6 +43,8 @@ source_set("net") {
     "brave_service_key_network_delegate_helper.h",
     "brave_site_hacks_network_delegate_helper.cc",
     "brave_site_hacks_network_delegate_helper.h",
+    "brave_social_media_permissions_network_delegate_helper.cc",
+    "brave_social_media_permissions_network_delegate_helper.h",
     "brave_static_redirect_network_delegate_helper.cc",
     "brave_static_redirect_network_delegate_helper.h",
     "brave_stp_util.cc",

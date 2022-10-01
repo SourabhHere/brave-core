@@ -17,6 +17,7 @@
 #include "brave/browser/net/brave_reduce_language_network_delegate_helper.h"
 #include "brave/browser/net/brave_service_key_network_delegate_helper.h"
 #include "brave/browser/net/brave_site_hacks_network_delegate_helper.h"
+#include "brave/browser/net/brave_social_media_permissions_network_delegate_helper.h"
 #include "brave/browser/net/brave_stp_util.h"
 #include "brave/browser/net/decentralized_dns_network_delegate_helper.h"
 #include "brave/browser/net/global_privacy_control_network_delegate_helper.h"
@@ -83,6 +84,10 @@ void BraveRequestHandler::SetupCallbacks() {
   before_url_request_callbacks_.push_back(callback);
 
   callback = base::BindRepeating(brave_rewards::OnBeforeURLRequest);
+  before_url_request_callbacks_.push_back(callback);
+
+  callback = base::BindRepeating(
+      brave::OnBeforeURLRequest_SocialMediaPermissionsCheck);
   before_url_request_callbacks_.push_back(callback);
 
 #if BUILDFLAG(ENABLE_IPFS)

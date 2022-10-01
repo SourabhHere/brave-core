@@ -19,7 +19,8 @@
   BRAVE_COOKIES,                                                               \
   BRAVE_SPEEDREADER,                                                           \
   BRAVE_ETHEREUM,                                                              \
-  BRAVE_SOLANA
+  BRAVE_SOLANA,                                                                \
+  BRAVE_GOOGLE_SIGN_IN                                                         \
 // clang-format on
 
 #include "src/components/content_settings/core/common/content_settings_types.h"

@@ -5,7 +5,6 @@
 
 #include "components/permissions/permission_util.h"
 #include "third_party/blink/public/common/permissions/permission_utils.h"
-
 #define PermissionUtil PermissionUtil_ChromiumImpl
 
 #define NUM                                                      \
@@ -31,6 +30,8 @@
     return ContentSettingsType::BRAVE_ETHEREUM;                  \
   case PermissionType::BRAVE_SOLANA:                             \
     return ContentSettingsType::BRAVE_SOLANA;                    \
+  case PermissionType::BRAVE_GOOGLE_SIGN_IN:                     \
+    return ContentSettingsType::BRAVE_GOOGLE_SIGN_IN;            \
   case PermissionType::NUM
 
 #include "src/components/permissions/permission_util.cc"
@@ -47,6 +48,8 @@ std::string PermissionUtil::GetPermissionString(
       return "BraveEthereum";
     case ContentSettingsType::BRAVE_SOLANA:
       return "BraveSolana";
+    case ContentSettingsType::BRAVE_GOOGLE_SIGN_IN:
+      return "BraveGoogleSignIn";
     default:
       return PermissionUtil_ChromiumImpl::GetPermissionString(content_type);
   }
@@ -55,6 +58,10 @@ std::string PermissionUtil::GetPermissionString(
 // static
 bool PermissionUtil::GetPermissionType(ContentSettingsType type,
                                        blink::PermissionType* out) {
+  if (type == ContentSettingsType::BRAVE_GOOGLE_SIGN_IN) {
+    *out = PermissionType::BRAVE_GOOGLE_SIGN_IN;
+    return true;
+  }
   if (type == ContentSettingsType::BRAVE_ETHEREUM ||
       type == ContentSettingsType::BRAVE_SOLANA) {
     *out = PermissionType::WINDOW_PLACEMENT;
@@ -69,6 +76,7 @@ bool PermissionUtil::IsPermission(ContentSettingsType type) {
   switch (type) {
     case ContentSettingsType::BRAVE_ETHEREUM:
     case ContentSettingsType::BRAVE_SOLANA:
+    case ContentSettingsType::BRAVE_GOOGLE_SIGN_IN:
       return true;
     default:
       return PermissionUtil_ChromiumImpl::IsPermission(type);
