@@ -27,7 +27,7 @@
 #include "brave/components/brave_rewards/browser/rewards_service_observer.h"
 #include "brave/components/brave_rewards/browser/test/common/rewards_browsertest_util.h"
 #include "brave/components/constants/brave_paths.h"
-#include "brave/components/l10n/browser/locale_helper_mock.h"
+#include "brave/components/l10n/common/locale_util.h"
 #include "chrome/common/chrome_constants.h"
 #include "chrome/common/chrome_paths.h"
 #include "chrome/test/base/in_process_browser_test.h"
@@ -121,7 +121,7 @@ class BraveAdsBrowserTest : public InProcessBrowserTest,
   BraveAdsBrowserTest() {
     // You can do set-up work for each test here
 
-    MaybeMockLocaleHelper();
+    MaybeMockLocale();
   }
 
   // You can do clean-up work that doesn't throw exceptions here
@@ -213,7 +213,7 @@ class BraveAdsBrowserTest : public InProcessBrowserTest,
 
   bool IsAdsEnabled() { return ads_service_->IsEnabled(); }
 
-  void MaybeMockLocaleHelper() {
+  void MaybeMockLocale() {
     const std::map<std::string, std::string> locale_for_tests = {
         {"BraveAdsLocaleIsSupported", "en_US"},
         {"BraveAdsLocaleIsNotSupported", "en_XX"},
@@ -232,14 +232,14 @@ class BraveAdsBrowserTest : public InProcessBrowserTest,
 
     const auto it = locale_for_tests.find(test_info->name());
     if (it == locale_for_tests.end()) {
-      MaybeMockLocaleHelperForBraveAdsUpgradePath();
+      MaybeMockLocaleForBraveAdsUpgradePath();
       return;
     }
 
-    MockLocaleHelper(it->second);
+    brave_l10n::icu::SetLocaleForTesting(it->second);
   }
 
-  void MaybeMockLocaleHelperForBraveAdsUpgradePath() {
+  void MaybeMockLocaleForBraveAdsUpgradePath() {
     std::vector<std::string> parameters;
     if (!GetUpgradePathParams(&parameters)) {
       return;
@@ -273,14 +273,7 @@ class BraveAdsBrowserTest : public InProcessBrowserTest,
       }
     }
 
-    MockLocaleHelper(locale);
-  }
-
-  void MockLocaleHelper(const std::string& locale) {
-    locale_helper_mock_ =
-        std::make_unique<NiceMock<brave_l10n::LocaleHelperMock>>();
-
-    ON_CALL(*locale_helper_mock_, GetLocale()).WillByDefault(Return(locale));
+    brave_l10n::icu::SetLocaleForTesting(locale);
   }
 
   void MaybeMockUserProfilePreferencesForBraveAdsUpgradePath() {
@@ -381,7 +374,6 @@ class BraveAdsBrowserTest : public InProcessBrowserTest,
 
   TestRewardsServiceObserver rewards_service_observer_;
 
-  std::unique_ptr<brave_l10n::LocaleHelperMock> locale_helper_mock_;
   const std::string newly_supported_locale_ = "en_830";
 
   std::string wallet_;
@@ -1063,7 +1055,7 @@ const BraveAdsUpgradePathParamInfo kTests[] = {
     }};
 
 IN_PROC_BROWSER_TEST_P(BraveAdsUpgradeBrowserTest, PRE_UpgradePath) {
-  // Handled in |MaybeMockLocaleHelperForBraveAdsUpgradePath|
+  // Handled in |MaybeMockLocaleForBraveAdsUpgradePath|
 
   const ::testing::TestInfo* const test_info =
       ::testing::UnitTest::GetInstance()->current_test_info();

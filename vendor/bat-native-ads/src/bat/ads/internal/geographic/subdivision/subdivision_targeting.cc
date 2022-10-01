@@ -120,7 +120,7 @@ const std::string& SubdivisionTargeting::GetLazySubdivisionCode() const {
 }
 
 bool SubdivisionTargeting::IsSupportedLocale(const std::string& locale) const {
-  const std::string country_code = brave_l10n::GetCountryCode(locale);
+  const std::string country_code = brave_l10n::icu::GetCountryCode(locale);
 
   const auto iter = kSupportedSubdivisionCodes.find(country_code);
   return iter != kSupportedSubdivisionCodes.cend();
@@ -139,7 +139,7 @@ void SubdivisionTargeting::MaybeAllowForLocale(const std::string& locale) {
     return;
   }
 
-  const std::string country_code = brave_l10n::GetCountryCode(locale);
+  const std::string country_code = brave_l10n::icu::GetCountryCode(locale);
   const SupportedSubdivisionCodesSet& subdivision_codes =
       kSupportedSubdivisionCodes.at(country_code);
 

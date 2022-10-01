@@ -31,7 +31,6 @@
 #include "brave/components/brave_rewards/resources/grit/brave_rewards_page_generated_map.h"
 #include "brave/components/brave_rewards/resources/grit/brave_rewards_resources.h"
 #include "brave/components/constants/webui_url_constants.h"
-#include "brave/components/l10n/browser/locale_helper.h"
 #include "brave/components/l10n/common/locale_util.h"
 #include "build/build_config.h"
 #include "chrome/browser/lifetime/application_lifetime.h"
@@ -1947,12 +1946,8 @@ void RewardsDOMHandler::GetAllMonthlyReportIds(const base::Value::List& args) {
 void RewardsDOMHandler::GetCountryCode(const base::Value::List& args) {
   AllowJavascript();
 
-  const std::string locale =
-      brave_l10n::LocaleHelper::GetInstance()->GetLocale();
-  const std::string country_code = brave_l10n::GetCountryCode(locale);
-
   CallJavascriptFunction("brave_rewards.countryCode",
-                         base::Value(country_code));
+                         base::Value(brave_l10n::icu::GetCountryCode()));
 }
 
 void RewardsDOMHandler::CompleteReset(const base::Value::List& args) {
