@@ -15,11 +15,11 @@ import connectWalletGraphic from '../assets/connect_wallet.svg'
 
 import * as style from './connect_wallet_modal.style'
 
-function renderProviderIcon (provider: string) {
-  switch (provider) {
-    case 'bitflyer': return <BitflyerIcon />
-    case 'gemini': return <GeminiIcon />
-    case 'uphold': return <UpholdIcon />
+function renderProviderIcon (provider: ExternalWalletProvider) {
+  switch (provider.type) {
+    case 'bitflyer': return <BitflyerIcon fill={!provider.enabled ? 'gray' : undefined} />
+    case 'gemini': return <GeminiIcon fill={!provider.enabled ? 'gray' : undefined} />
+    case 'uphold': return <UpholdIcon fill={!provider.enabled ? 'gray' : undefined} />
     default: return null
   }
 }
@@ -29,6 +29,7 @@ type ModalState = 'info' | 'select'
 interface ExternalWalletProvider {
   type: string
   name: string
+  enabled: boolean
 }
 
 interface Props {
@@ -121,8 +122,10 @@ export function ConnectWalletModal (props: Props) {
           {
             props.providers.map((provider) => {
               const onClick = () => {
-                setSelectedProvider(provider)
-                props.onContinue(provider.type)
+                if (provider.enabled) {
+                  setSelectedProvider(provider)
+                  props.onContinue(provider.type)
+                }
               }
 
               const selected =
@@ -134,17 +137,22 @@ export function ConnectWalletModal (props: Props) {
                   data-test-id='connect-provider-button'
                   key={provider.type}
                   onClick={onClick}
-                  className={selected ? 'selected' : ''}
+                  className={!provider.enabled ? 'grayed-out' : selected ? 'selected' : ''}
                 >
-                  <style.providerButtonIcon>
-                    {renderProviderIcon(provider.type)}
+                  <style.providerButtonIcon className={!provider.enabled ? 'grayed-out' : ''}>
+                    {renderProviderIcon(provider)}
                   </style.providerButtonIcon>
-                  <style.providerButtonName>
+                  <style.providerButtonName className={!provider.enabled ? 'grayed-out' : ''}>
                     {provider.name}
                   </style.providerButtonName>
+                  {!provider.enabled &&
+                  <style.providerButtonComment>
+                    {'Currently not available in your region'}
+                  </style.providerButtonComment>}
+                  {provider.enabled &&
                   <style.providerButtonCaret>
                     <CaretIcon direction='right' />
-                  </style.providerButtonCaret>
+                  </style.providerButtonCaret>}
                 </button>
               )
             })

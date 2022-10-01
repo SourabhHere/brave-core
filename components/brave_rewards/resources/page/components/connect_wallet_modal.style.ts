@@ -203,6 +203,11 @@ export const providerButtons = styled.div`
     &.selected {
       border-color: var(--brave-color-brandBat);
     }
+
+    &.grayed-out {
+      background: #F8F9FA;
+      color: #495057;
+    }
   }
 
   .layout-narrow & {
@@ -226,17 +231,34 @@ export const providerButtonIcon = styled.div`
     height: 25px;
     width: auto;
   }
+
+  &.grayed-out {
+    background: #FFFFFF;
+  }
 `
 
 export const providerButtonName = styled.div`
   flex: 1 1 auto;
   padding-left: 30px;
   text-align: left;
+
+  &.grayed-out {
+    color: #495057;
+  }
+`
+
+export const providerButtonComment = styled.div`
+  flex: 1 1 auto;
+  padding-left: 30px;
+  text-align: left;
+  color: #495057;
+  font-weight: 400;
+  font-size: 12px;
 `
 
 export const providerButtonCaret = styled.div`
   flex: 0 0 10px;
-
+  color: #4C54D2;
   .icon {
     height: 16px;
     width: auto;

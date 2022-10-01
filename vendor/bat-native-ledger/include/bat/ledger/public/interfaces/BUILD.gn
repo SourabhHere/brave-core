@@ -6,6 +6,24 @@ mojom("interfaces") {
     "ledger_database.mojom",
     "ledger_endpoints.mojom",
   ]
+  
+  cpp_typemaps = [
+    {
+      types = [
+        {
+          mojom = "ledger.mojom.StringSet"
+          cpp = "::std::set<std::string>"
+          move_only = true
+        }
+      ]
+
+      traits_headers = [ "ledger_mojom_traits.h" ]
+      traits_sources = [ "ledger_mojom_traits.cc" ]
+      traits_public_deps = [
+        "//mojo/public/cpp/bindings",
+      ]
+    },
+  ]
 
   public_deps = [ "//mojo/public/mojom/base" ]
 }
