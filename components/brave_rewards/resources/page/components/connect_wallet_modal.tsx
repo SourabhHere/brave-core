@@ -29,6 +29,7 @@ type ModalState = 'info' | 'select'
 interface ExternalWalletProvider {
   type: string
   name: string
+  enabled: boolean
 }
 
 interface Props {
@@ -134,7 +135,7 @@ export function ConnectWalletModal (props: Props) {
                   data-test-id='connect-provider-button'
                   key={provider.type}
                   onClick={onClick}
-                  className={selected ? 'selected' : ''}
+                  className={!provider.enabled ? 'greyed-out' : selected ? 'selected' : ''}
                 >
                   <style.providerButtonIcon>
                     {renderProviderIcon(provider.type)}

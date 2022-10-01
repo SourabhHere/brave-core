@@ -203,6 +203,11 @@ export const providerButtons = styled.div`
     &.selected {
       border-color: var(--brave-color-brandBat);
     }
+
+    &.greyed-out {
+      background: green;
+      color: yellow;
+    }
   }
 
   .layout-narrow & {
