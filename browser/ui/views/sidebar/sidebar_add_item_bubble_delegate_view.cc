@@ -15,7 +15,7 @@
 #include "brave/browser/ui/sidebar/sidebar_utils.h"
 #include "brave/browser/ui/views/sidebar/bubble_border_with_arrow.h"
 #include "brave/browser/ui/views/sidebar/sidebar_bubble_background.h"
-#include "brave/components/l10n/common/locale_util.h"
+#include "brave/components/l10n/common/localization_util.h"
 #include "brave/components/sidebar/sidebar_service.h"
 #include "brave/grit/brave_generated_resources.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
