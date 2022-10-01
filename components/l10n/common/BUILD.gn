@@ -1,10 +1,12 @@
 static_library("common") {
   deps = [
     "//base",
+    "//third_party/icu",
     "//ui/base",
   ]
 
   sources = [
+    "locale_constants.h",
     "locale_util.cc",
     "locale_util.h",
   ]
