@@ -7,7 +7,7 @@
 
 #include "base/check_op.h"
 #include "bat/ads/internal/base/logging_util.h"
-#include "brave/components/l10n/browser/locale_helper.h"
+#include "brave/components/l10n/common/locale_util.h"
 
 namespace ads {
 
@@ -61,7 +61,7 @@ void LocaleManager::OnLocaleDidChange(const std::string& locale) {
 }
 
 std::string LocaleManager::GetLocale() const {
-  return brave_l10n::LocaleHelper::GetInstance()->GetLocale();
+  return brave_l10n::icu::GetLocale();
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -57,10 +57,10 @@ void ResourceComponent::RemoveObserver(ResourceComponentObserver* observer) {
 }
 
 void ResourceComponent::RegisterComponentsForLocale(const std::string& locale) {
-  const std::string country_code = brave_l10n::GetCountryCode(locale);
+  const std::string country_code = brave_l10n::icu::GetCountryCode(locale);
   RegisterComponentForCountryCode(country_code);
 
-  const std::string language_code = brave_l10n::GetLanguageCode(locale);
+  const std::string language_code = brave_l10n::icu::GetLanguageCode(locale);
   RegisterComponentForLanguageCode(language_code);
 }
 

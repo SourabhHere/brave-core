@@ -30,7 +30,6 @@
 #include "bat/ads/internal/tabs/tab_manager.h"
 #include "bat/ads/internal/user_interaction/idle_detection/idle_detection_manager.h"
 #include "bat/ads/internal/user_interaction/user_activity/user_activity_manager.h"
-#include "brave/components/l10n/browser/locale_helper_mock.h"
 #include "testing/gmock/include/gmock/gmock.h"  // IWYU pragma: keep
 #include "testing/gtest/include/gtest/gtest.h"  // IWYU pragma: keep
 
@@ -131,7 +130,6 @@ class UnitTestBase : public testing::Test {
   base::test::TaskEnvironment task_environment_;
 
   std::unique_ptr<AdsClientMock> ads_client_mock_;
-  std::unique_ptr<brave_l10n::LocaleHelperMock> locale_helper_mock_;
   std::unique_ptr<PlatformHelperMock> platform_helper_mock_;
 
  private:

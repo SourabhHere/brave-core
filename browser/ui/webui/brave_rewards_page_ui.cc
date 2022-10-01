@@ -31,7 +31,6 @@
 #include "brave/components/brave_rewards/resources/grit/brave_rewards_page_generated_map.h"
 #include "brave/components/brave_rewards/resources/grit/brave_rewards_resources.h"
 #include "brave/components/constants/webui_url_constants.h"
-#include "brave/components/l10n/browser/locale_helper.h"
 #include "brave/components/l10n/common/locale_util.h"
 #include "build/build_config.h"
 #include "chrome/browser/lifetime/application_lifetime.h"
@@ -1951,7 +1950,6 @@ void RewardsDOMHandler::GetCountryCode(const base::Value::List& args) {
   if (!rewards_service_) {
     return;
   }
-
   AllowJavascript();
   CallJavascriptFunction("brave_rewards.countryCode",
                          base::Value(rewards_service_->GetCountryCode()));

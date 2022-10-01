@@ -12,6 +12,7 @@
 #include "bat/ads/internal/base/unittest/unittest_mock_util.h"
 #include "bat/ads/internal/geographic/subdivision/subdivision_targeting.h"
 #include "bat/ads/pref_names.h"
+#include "brave/components/l10n/common/locale_util.h"
 #include "net/http/http_status_code.h"
 
 // npm run test -- brave_unit_tests --filter=BatAds*
@@ -40,9 +41,9 @@ class BatAdsSubdivisionTargetingExclusionRuleTest
     UnitTestBase::SetUp();
 
     if (GetParam().country == base::StringPiece("US")) {
-      MockLocaleHelper(locale_helper_mock_, "en-US");
+      brave_l10n::icu::SetLocaleForTesting("en_US");
     } else if (GetParam().country == base::StringPiece("CA")) {
-      MockLocaleHelper(locale_helper_mock_, "en-CA");
+      brave_l10n::icu::SetLocaleForTesting("en_CA");
     }
 
     subdivision_targeting_ =
