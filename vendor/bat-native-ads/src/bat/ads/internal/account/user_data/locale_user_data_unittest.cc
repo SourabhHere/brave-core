@@ -20,7 +20,7 @@ TEST_F(BatAdsLocaleUserDataTest, GetLocaleForNonReleaseBuildChannel) {
   // Arrange
   MockBuildChannel(BuildChannelType::kNightly);
 
-  const brave_l10n::ScopedLocaleForTesting scoped_locale{"en_US"};
+  const brave_l10n::icu::ScopedLocaleForTesting scoped_locale{"en_US"};
 
   // Act
   const base::Value::Dict user_data = GetLocale();
@@ -36,7 +36,7 @@ TEST_F(BatAdsLocaleUserDataTest, GetLocaleForReleaseBuildChannel) {
   // Arrange
   MockBuildChannel(BuildChannelType::kRelease);
 
-  const brave_l10n::ScopedLocaleForTesting scoped_locale{"en_US"};
+  const brave_l10n::icu::ScopedLocaleForTesting scoped_locale{"en_US"};
 
   // Act
   const base::Value::Dict user_data = GetLocale();
@@ -53,7 +53,7 @@ TEST_F(BatAdsLocaleUserDataTest, GetLocaleForCountryNotInAnonymitySet) {
   // Arrange
   MockBuildChannel(BuildChannelType::kRelease);
 
-  const brave_l10n::ScopedLocaleForTesting scoped_locale{"en_MC"};
+  const brave_l10n::icu::ScopedLocaleForTesting scoped_locale{"en_MC"};
 
   // Act
   const base::Value::Dict user_data = GetLocale();
@@ -70,7 +70,7 @@ TEST_F(BatAdsLocaleUserDataTest,
   // Arrange
   MockBuildChannel(BuildChannelType::kRelease);
 
-  const brave_l10n::ScopedLocaleForTesting scoped_locale{"en_CX"};
+  const brave_l10n::icu::ScopedLocaleForTesting scoped_locale{"en_CX"};
 
   // Act
   const base::Value::Dict user_data = GetLocale();
