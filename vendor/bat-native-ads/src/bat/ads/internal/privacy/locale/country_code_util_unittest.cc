@@ -15,7 +15,7 @@ TEST(BatAdsCountryCodeUtilTest, IsMemberOfAnonymitySet) {
   // Arrange
 
   // Act
-  const bool is_member_of_anonymity_set = IsMemberOfAnonymitySet("en-US");
+  const bool is_member_of_anonymity_set = IsMemberOfAnonymitySet("US");
 
   // Assert
   EXPECT_TRUE(is_member_of_anonymity_set);
@@ -25,7 +25,7 @@ TEST(BatAdsCountryCodeUtilTest, IsNotMemberOfAnonymitySet) {
   // Arrange
 
   // Act
-  const bool is_member_of_anonymity_set = IsMemberOfAnonymitySet("en-XX");
+  const bool is_member_of_anonymity_set = IsMemberOfAnonymitySet("XX");
 
   // Assert
   EXPECT_FALSE(is_member_of_anonymity_set);
@@ -35,7 +35,7 @@ TEST(BatAdsCountryCodeUtilTest, ShouldClassifyAsOther) {
   // Arrange
 
   // Act
-  const bool is_anonymous = ShouldClassifyAsOther("en-CX");
+  const bool is_anonymous = ShouldClassifyAsOther("CX");
 
   // Assert
   EXPECT_TRUE(is_anonymous);
@@ -45,7 +45,7 @@ TEST(BatAdsCountryCodeUtilTest, ShouldNotClassifyAsOther) {
   // Arrange
 
   // Act
-  const bool is_anonymous = ShouldClassifyAsOther("en-XX");
+  const bool is_anonymous = ShouldClassifyAsOther("XX");
 
   // Assert
   EXPECT_FALSE(is_anonymous);
