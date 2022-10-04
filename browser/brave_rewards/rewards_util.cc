@@ -11,9 +11,10 @@
 
 namespace brave_rewards {
 
-bool IsSupportedForProfile(Profile* profile) {
+bool IsSupportedForProfile(Profile* profile, bool ignore_unsupported_regions) {
   DCHECK(profile);
-  return brave::IsRegularProfile(profile) && IsSupported(profile->GetPrefs());
+  return brave::IsRegularProfile(profile) &&
+         IsSupported(profile->GetPrefs(), ignore_unsupported_regions);
 }
 
 }  // namespace brave_rewards

@@ -10,7 +10,8 @@ class Profile;
 
 namespace brave_rewards {
 
-bool IsSupportedForProfile(Profile* profile);
+bool IsSupportedForProfile(Profile* profile,
+                           bool ignore_unsupported_regions = false);
 
 }  // namespace brave_rewards
 
