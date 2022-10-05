@@ -737,6 +737,11 @@ void CustomizeWebUIHTMLSource(content::WebUI* web_ui,
         { "total", IDS_BRAVE_UI_TOTAL },
         { "transactions", IDS_BRAVE_UI_TRANSACTIONS },
         { "type", IDS_BRAVE_UI_TYPE },
+        { "unsupportedRegionNoticeHeader", IDS_BRAVE_REWARDS_UNSUPPORTED_REGION_NOTICE_HEADER},  // NOLINT
+        { "unsupportedRegionNoticeSubheader", IDS_BRAVE_REWARDS_UNSUPPORTED_REGION_NOTICE_SUBHEADER},  // NOLINT
+        { "unsupportedRegionNoticeLearnMore", IDS_BRAVE_REWARDS_UNSUPPORTED_REGION_NOTICE_LEARN_MORE},  // NOLINT
+        { "unsupportedRegionNoticeText1", IDS_BRAVE_REWARDS_UNSUPPORTED_REGION_NOTICE_TEXT_1},  // NOLINT
+        { "unsupportedRegionNoticeText2", IDS_BRAVE_REWARDS_UNSUPPORTED_REGION_NOTICE_TEXT_2},  // NOLINT
         { "verifiedPublisher", IDS_BRAVE_UI_VERIFIED_PUBLISHER },
         { "viewDetails" , IDS_BRAVE_UI_VIEW_DETAILS },
         { "viewMonthly", IDS_BRAVE_UI_VIEW_MONTHLY },

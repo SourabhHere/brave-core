@@ -41,6 +41,18 @@ export const onboarding = styled.div`
   }
 `
 
+export const unsupportedRegionNotice = styled.div`
+  margin: 0 auto;
+  width: 600px;
+
+  .layout-narrow & {
+    width: 100%;
+    max-width: 600px;
+    min-width: 320px;
+    margin-top: -20px;
+  }
+`
+
 export const content = styled.div`
   margin: 0 auto;
   max-width: 1024px;

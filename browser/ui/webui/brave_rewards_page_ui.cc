@@ -28,6 +28,7 @@
 #include "brave/components/brave_rewards/browser/rewards_service.h"
 #include "brave/components/brave_rewards/browser/rewards_service_observer.h"
 #include "brave/components/brave_rewards/common/pref_names.h"
+#include "brave/components/brave_rewards/common/rewards_util.h"
 #include "brave/components/brave_rewards/resources/grit/brave_rewards_page_generated_map.h"
 #include "brave/components/brave_rewards/resources/grit/brave_rewards_resources.h"
 #include "brave/components/constants/webui_url_constants.h"
@@ -201,6 +202,7 @@ class RewardsDOMHandler
 
   void OnExternalWalletTypeUpdated(const ledger::mojom::Result result,
                                    ledger::mojom::ExternalWalletPtr wallet);
+  void GetIsUnsupportedRegion(const base::Value::List& args);
 
   // RewardsServiceObserver implementation
   void OnRewardsInitialized(
@@ -518,6 +520,10 @@ void RewardsDOMHandler::RegisterMessages() {
   web_ui()->RegisterMessageCallback(
       "brave_rewards.setExternalWalletType",
       base::BindRepeating(&RewardsDOMHandler::SetExternalWalletType,
+                          base::Unretained(this)));
+  web_ui()->RegisterMessageCallback(
+      "brave_rewards.getIsUnsupportedRegion",
+      base::BindRepeating(&RewardsDOMHandler::GetIsUnsupportedRegion,
                           base::Unretained(this)));
 }
 
@@ -1953,6 +1959,13 @@ void RewardsDOMHandler::GetCountryCode(const base::Value::List& args) {
   AllowJavascript();
   CallJavascriptFunction("brave_rewards.countryCode",
                          base::Value(rewards_service_->GetCountryCode()));
+}
+
+void RewardsDOMHandler::GetIsUnsupportedRegion(const base::Value::List& args) {
+  AllowJavascript();
+
+  CallJavascriptFunction("brave_rewards.onIsUnsupportedRegion",
+                         base::Value(brave_rewards::IsUnsupportedRegion()));
 }
 
 void RewardsDOMHandler::CompleteReset(const base::Value::List& args) {

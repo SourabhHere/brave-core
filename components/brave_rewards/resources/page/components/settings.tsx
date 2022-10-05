@@ -19,6 +19,7 @@ import { ProviderRedirectModal } from './provider_redirect_modal'
 import { GrantList } from './grant_list'
 import { SidebarPromotionPanel } from './sidebar_promotion_panel'
 import { BatIcon } from '../../shared/components/icons/bat_icon'
+import { UnsupportedRegionNotice } from '../../shared/components/unsupported_region_notice'
 
 import * as style from './settings.style'
 
@@ -54,6 +55,10 @@ export function Settings () {
 
     return false
   }
+
+  React.useEffect(() => {
+    actions.getIsUnsupportedRegion()
+  }, [])
 
   React.useEffect(() => {
     const date = new Date()
@@ -137,6 +142,14 @@ export function Settings () {
     )
   }
 
+  const renderedUnsupportedRegionNotice = () => {
+    return (
+      <style.unsupportedRegionNotice>
+        <UnsupportedRegionNotice />
+      </style.unsupportedRegionNotice>
+    )
+  }
+
   const renderOnboarding = () => {
     const onEnable = () => {
       actions.enableRewards()
@@ -154,6 +167,10 @@ export function Settings () {
     // determined.
     if (rewardsData.showOnboarding === null) {
       return null
+    }
+
+    if (rewardsData.isUnsupportedRegion) {
+      return renderedUnsupportedRegionNotice()
     }
 
     if (rewardsData.showOnboarding) {
