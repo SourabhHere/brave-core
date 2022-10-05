@@ -883,6 +883,9 @@ void RewardsDOMHandler::OnAutoContributePropsReady(
 }
 
 void RewardsDOMHandler::GetExcludedSites(const base::Value::List& args) {
+  if (!rewards_service_) {
+    return;
+  }
   AllowJavascript();
   rewards_service_->GetExcludedList(base::BindOnce(
       &RewardsDOMHandler::OnExcludedSiteList, weak_factory_.GetWeakPtr()));
@@ -1478,6 +1481,10 @@ void RewardsDOMHandler::OnPublisherListNormalized(
 }
 
 void RewardsDOMHandler::GetStatement(const base::Value::List& args) {
+  if (!ads_service_) {
+    return;
+  }
+
   AllowJavascript();
   ads_service_->GetStatementOfAccounts(base::BindOnce(
       &RewardsDOMHandler::OnGetStatement, weak_factory_.GetWeakPtr()));
@@ -1511,6 +1518,10 @@ void RewardsDOMHandler::OnStatementChanged(
 }
 
 void RewardsDOMHandler::OnAdRewardsDidChange() {
+  if (!ads_service_) {
+    return;
+  }
+
   ads_service_->GetStatementOfAccounts(base::BindOnce(
       &RewardsDOMHandler::OnGetStatement, weak_factory_.GetWeakPtr()));
 }
