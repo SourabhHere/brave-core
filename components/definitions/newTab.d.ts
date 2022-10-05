@@ -15,6 +15,7 @@ declare namespace NewTab {
   export type ImageBackground = {
     type: 'image'
     wallpaperImageUrl: string
+    random?: boolean
   }
 
   export type BraveBackground = Omit<ImageBackground, 'type'> & {
@@ -23,8 +24,8 @@ declare namespace NewTab {
     link?: string
     originalUrl?: string
     license?: string
-    
-    // Picked by our rotating algorithm. When it's false, it means that the user 
+
+    // Picked by our rotating algorithm. When it's false, it means that the user
     // has picked this background.
     random?: boolean
   }
@@ -145,6 +146,7 @@ declare namespace NewTab {
     textDirection: string
     featureFlagBraveNTPSponsoredImagesWallpaper: boolean
     featureFlagBraveNewsEnabled: boolean
+    featureFlagBraveNewsV2Enabled: boolean
     featureFlagBraveNewsPromptEnabled: boolean
     featureFlagBraveNewsSubscribeButtonEnabled: boolean
     searchPromotionEnabled: boolean
@@ -156,7 +158,6 @@ declare namespace NewTab {
     torInitProgress: string,
     isTor: boolean
     isQwant: boolean
-    backgroundWallpaper?: BackgroundWallpaper
     gridLayoutSize?: 'small'
     showGridSiteRemovedNotification?: boolean
     showBackgroundImage: boolean
@@ -166,6 +167,8 @@ declare namespace NewTab {
     stats: Stats,
     braveTalkPromptAllowed: boolean
     brandedWallpaper?: BrandedWallpaper
+    backgroundWallpaper?: BackgroundWallpaper
+    customImageBackgrounds: ImageBackground[]
   }
 
   export interface RewardsWidgetState {
@@ -256,7 +259,6 @@ declare namespace NewTab {
     NOT_FOUND = 9,
     REGISTRATION_VERIFICATION_FAILED = 10,
     BAD_REGISTRATION_RESPONSE = 11,
-    WALLET_CREATED = 12,
     WALLET_CORRUPT = 17
   }
 
@@ -316,6 +318,7 @@ declare namespace NewTab {
 
   interface StorybookStateExtras {
     forceSettingsTab?: string // SettingsTabType
+    readabilityThreshold?: number
   }
 
   // In-memory state is a superset of PersistentState

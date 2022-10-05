@@ -50,8 +50,10 @@ export const Publisher = () => (
         publisherId: '123abc',
         publisherName: text('Publisher Name', 'small'),
         categoryName: 'Top News',
+        channels: ['Top News', 'Top Sources'],
         feedSource: { url: 'http://www.example.com/feed' },
         siteUrl: { url: 'https://www.example.com' },
+        locales: ['en_US'],
         type: BraveNews.PublisherType.COMBINED_SOURCE,
         isEnabled: true,
         userEnabledStatus: BraveNews.UserEnabled.NOT_MODIFIED
@@ -63,8 +65,10 @@ export const Publisher = () => (
         publisherId: '123abcdef',
         publisherName: text('Publisher Name 2', 'The Miller Chronicle'),
         categoryName: 'Top News',
+        channels: ['Top News', 'Top Sources'],
         feedSource: { url: 'http://www.example.com/feed' },
         siteUrl: { url: 'https://www.example.com' },
+        locales: ['en_US'],
         type: BraveNews.PublisherType.COMBINED_SOURCE,
         isEnabled: true,
         userEnabledStatus: BraveNews.UserEnabled.NOT_MODIFIED

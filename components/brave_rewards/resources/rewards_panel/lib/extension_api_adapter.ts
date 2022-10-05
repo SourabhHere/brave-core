@@ -152,32 +152,22 @@ export function getNotifications () {
   })
 }
 
-type GrantsUpdatedCallback = (grants: GrantInfo[]) => void
+function promotionToGrant (promotion: RewardsExtension.Promotion): GrantInfo {
+  return {
+    id: promotion.promotionId,
+    type: promotion.type === 1 ? 'ads' : 'ugp',
+    amount: promotion.amount,
+    createdAt: promotion.createdAt * 1000 || null,
+    claimableUntil: promotion.claimableUntil * 1000 || null,
+    expiresAt: promotion.expiresAt * 1000 || null
+  }
+}
 
-let grantResolver: GrantsUpdatedCallback | null = null
-let grantPromise: Promise<GrantInfo[]> | null = null
+type GrantsUpdatedCallback = (grants: GrantInfo[]) => void
 let grantsUpdatedCallbacks: GrantsUpdatedCallback[] = []
 
 chrome.braveRewards.onPromotions.addListener((result, promotions) => {
-  const grants: GrantInfo[] = []
-  for (const obj of promotions) {
-    const type = obj.type === 1 ? 'ads' : 'ugp'
-    grants.push({
-      id: obj.promotionId,
-      type,
-      amount: obj.amount,
-      createdAt: obj.createdAt * 1000 || null,
-      claimableUntil: obj.claimableUntil * 1000 || null,
-      expiresAt: obj.expiresAt * 1000 || null
-    })
-  }
-
-  // If a caller of |getGrants| is currently waiting on a result, resolve the
-  // associated promise.
-  if (grantResolver) {
-    grantResolver(grants)
-  }
-
+  const grants = promotions.map(promotionToGrant)
   for (const callback of grantsUpdatedCallbacks) {
     callback(grants)
   }
@@ -188,26 +178,21 @@ export function onGrantsUpdated (callback: (grants: GrantInfo[]) => void) {
 }
 
 export function getGrants () {
-  if (!grantPromise) {
-    grantPromise = new Promise<GrantInfo[]>((r) => { grantResolver = r })
-    chrome.braveRewards.fetchPromotions()
-  }
-  return grantPromise
-}
-
-export function getRewardsEnabled () {
-  return new Promise<boolean>((resolve) => {
-    // Currently, we must use the |showShowOnboarding| function to infer whether
-    // the user has enabled rewards.
-    chrome.braveRewards.shouldShowOnboarding((showOnboarding) => {
-      resolve(!showOnboarding)
+  return new Promise<GrantInfo[]>((resolve) => {
+    chrome.braveRewards.fetchPromotions((promotions) => {
+      resolve(promotions.map(promotionToGrant))
     })
   })
 }
 
+export function getRewardsEnabled () {
+  return new Promise<boolean>((resolve) => {
+    chrome.braveRewards.getRewardsEnabled(resolve)
+  })
+}
+
 export function onRewardsEnabled (callback: () => void) {
-  // The extension does not currently support an |onRewardsEnabled| function.
-  chrome.braveRewards.onAdsEnabled.addListener(() => { callback() })
+  chrome.braveRewards.onRewardsWalletUpdated.addListener(() => { callback() })
 }
 
 function getMonthlyTipAmount (publisherKey: string) {

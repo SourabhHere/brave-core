@@ -7,6 +7,7 @@ include_rules = [
   "+content/public/common",
   "+extensions/buildflags",
   "+extensions/common",
+  "+services/data_decoder/public",
   "+services/network/public",
   "+ui/base",
   "+ui/gfx",
@@ -19,7 +20,6 @@ specific_include_rules = {
     "+chrome/browser/profiles/profile.h",
   ],
   "rewards_service_impl.cc": [
-    "+brave/browser/brave_ads/ads_service_factory.h",
     "+brave/browser/ui/webui/brave_rewards_source.h",
     "+chrome/browser/bitmap_fetcher/bitmap_fetcher_service_factory.h",
     "+chrome/browser/browser_process_impl.h",

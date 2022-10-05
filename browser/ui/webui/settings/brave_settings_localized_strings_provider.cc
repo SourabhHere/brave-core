@@ -270,6 +270,12 @@ void BraveAddCommonStrings(content::WebUIDataSource* html_source,
     {"braveNewTabNewTabPageShows", IDS_SETTINGS_NEW_TAB_NEW_TAB_PAGE_SHOWS},
     {"braveNewTabNewTabCustomizeWidgets",
      IDS_SETTINGS_NEW_TAB_NEW_TAB_CUSTOMIZE_WIDGETS},
+  // Pin shortcut page
+#if BUILDFLAG(IS_WIN)
+    {"canPinShortcut", IDS_SETTINGS_CAN_PIN_SHORTCUT},
+    {"pinShortcut", IDS_SETTINGS_PIN_SHORTCUT},
+    {"shortcutPinned", IDS_SETTINGS_SHORTCUT_PINNED},
+#endif
     // Rewards page
     {"braveRewards", IDS_SETTINGS_BRAVE_REWARDS_TITLE},
     {"braveRewardsDisabledLabel", IDS_SETTINGS_BRAVE_REWARDS_DISABLED_LABEL},
@@ -532,6 +538,9 @@ void BraveAddCommonStrings(content::WebUIDataSource* html_source,
      IDS_BRAVE_ADBLOCK_SHOW_FULL_LISTS_BUTTON_LABEL},
     {"adblockFilterListsInputURLPlaceholder",
      IDS_BRAVE_ADBLOCK_CUSTOM_FILTER_LISTS_INPUT_PLACEHOLDER},
+    {"adblockContentFiltersLabel", IDS_BRAVE_ADBLOCK_CONTENT_FILTERS},
+    {"adblockFilterListsInputPlaceHolder",
+     IDS_BRAVE_ADBLOCK_FILTER_LISTS_INPUT_PLACEHOLDER},
     {"adblockFilterListsTableUrlHeader",
      IDS_BRAVE_ADBLOCK_FILTER_LISTS_TABLE_URL_HEADER},
     {"adblockFilterListsTableUpdatedHeader",

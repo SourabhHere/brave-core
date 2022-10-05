@@ -20,6 +20,7 @@ const char kTableName[] = "server_publisher_info";
 }  // namespace
 
 namespace ledger {
+
 namespace database {
 
 DatabaseServerPublisherInfo::DatabaseServerPublisherInfo(

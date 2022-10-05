@@ -315,6 +315,11 @@ handler.on(WalletActions.addUserAsset.getType(), async (store: Store, payload: B
   }
 
   const result = await braveWalletService.addUserAsset(payload)
+
+  // Refresh balances here for adding ERC721 tokens if result is successful
+  if (payload.isErc721 && result.success) {
+    refreshBalancesPricesAndHistory(store)
+  }
   store.dispatch(WalletActions.addUserAssetError(!result.success))
 })
 
@@ -654,6 +659,12 @@ handler.on(WalletActions.getCoinMarkets.getType(), async (store: Store, payload:
 })
 
 handler.on(WalletActions.setSelectedNetworkFilter.getType(), async (store: Store, payload: BraveWallet.NetworkInfo) => {
+  const state = getWalletState(store)
+  const { selectedPortfolioTimeline } = state
+  await store.dispatch(refreshTokenPriceHistory(selectedPortfolioTimeline))
+})
+
+handler.on(WalletActions.setSelectedAccountFilterItem.getType(), async (store: Store, payload: BraveWallet.NetworkInfo) => {
   const state = getWalletState(store)
   const { selectedPortfolioTimeline } = state
   await store.dispatch(refreshTokenPriceHistory(selectedPortfolioTimeline))

@@ -19,7 +19,6 @@
 #include "bat/ledger/mojom_structs.h"
 #include "brave/components/brave_rewards/browser/rewards_notification_service_observer.h"
 #include "brave/components/brave_rewards/browser/rewards_service_observer.h"
-#include "brave/components/brave_rewards/browser/rewards_service_private_observer.h"
 #include "brave/vendor/bat-native-ads/include/bat/ads/public/interfaces/ads.mojom.h"
 
 namespace brave_rewards {
@@ -31,15 +30,17 @@ namespace android {
 
 typedef std::map<uint64_t, ledger::mojom::PublisherInfoPtr> PublishersInfoMap;
 
-class BraveRewardsNativeWorker : public brave_rewards::RewardsServiceObserver,
-    public brave_rewards::RewardsServicePrivateObserver,
-    public brave_rewards::RewardsNotificationServiceObserver {
+class BraveRewardsNativeWorker
+    : public brave_rewards::RewardsServiceObserver,
+      public brave_rewards::RewardsNotificationServiceObserver {
  public:
     BraveRewardsNativeWorker(JNIEnv* env,
         const base::android::JavaRef<jobject>& obj);
     ~BraveRewardsNativeWorker() override;
 
     void Destroy(JNIEnv* env);
+
+    void CreateRewardsWallet(JNIEnv* env);
 
     void GetRewardsParameters(JNIEnv* env);
 
@@ -53,6 +54,8 @@ class BraveRewardsNativeWorker : public brave_rewards::RewardsServiceObserver,
         JNIEnv* env);
 
     void GetAdsAccountStatement(JNIEnv* env);
+
+    base::android::ScopedJavaLocalRef<jdoubleArray> GetTipChoices(JNIEnv* env);
 
     double GetWalletRate(JNIEnv* env);
 
@@ -87,7 +90,7 @@ class BraveRewardsNativeWorker : public brave_rewards::RewardsServiceObserver,
 
     void Donate(JNIEnv* env,
                 const base::android::JavaParamRef<jstring>& publisher_key,
-                int amount,
+                double amount,
                 bool recurring);
 
     void GetAllNotifications(JNIEnv* env);
@@ -135,6 +138,10 @@ class BraveRewardsNativeWorker : public brave_rewards::RewardsServiceObserver,
 
     void GetExternalWallet(JNIEnv* env);
 
+    void GetPublisherBanner(
+        JNIEnv* env,
+        const base::android::JavaParamRef<jstring>& publisher_key);
+
     void DisconnectWallet(JNIEnv* env);
 
     void RecoverWallet(JNIEnv* env,
@@ -179,6 +186,10 @@ class BraveRewardsNativeWorker : public brave_rewards::RewardsServiceObserver,
         const ledger::mojom::RewardsType type,
         const ledger::mojom::ContributionProcessor processor) override;
 
+    void OnPendingContributionSaved(
+        brave_rewards::RewardsService* rewards_service,
+        const ledger::mojom::Result result) override;
+
     void OnNotificationAdded(
       brave_rewards::RewardsNotificationService* rewards_notification_service,
       const brave_rewards::RewardsNotificationService::RewardsNotification&
@@ -200,13 +211,15 @@ class BraveRewardsNativeWorker : public brave_rewards::RewardsServiceObserver,
 
     void OnGetRecurringTips(std::vector<ledger::mojom::PublisherInfoPtr> list);
 
-    bool IsRewardsEnabled(JNIEnv* env);
-
     void OnClaimPromotion(const ledger::mojom::Result result,
                           ledger::mojom::PromotionPtr promotion);
 
     void OnGetExternalWallet(const ledger::mojom::Result result,
                              ledger::mojom::ExternalWalletPtr wallet);
+
+    void onPublisherBanner(ledger::mojom::PublisherBannerPtr wallet);
+
+    void OnOneTimeTip(ledger::mojom::Result result);
 
     void OnDisconnectWallet(brave_rewards::RewardsService* rewards_service,
                             const ledger::mojom::Result result,

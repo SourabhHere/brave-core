@@ -595,6 +595,54 @@ void BraveRewardsGetRewardsParametersFunction::OnGetRewardsParameters(
   Respond(OneArgument(base::Value(std::move(data))));
 }
 
+BraveRewardsCreateRewardsWalletFunction::
+    ~BraveRewardsCreateRewardsWalletFunction() = default;
+
+ExtensionFunction::ResponseAction
+BraveRewardsCreateRewardsWalletFunction::Run() {
+  auto* profile = Profile::FromBrowserContext(browser_context());
+  auto* rewards_service = RewardsServiceFactory::GetForProfile(profile);
+  if (!rewards_service) {
+    return RespondNow(Error("RewardsService not available"));
+  }
+
+  rewards_service->CreateRewardsWallet(base::BindOnce(
+      &BraveRewardsCreateRewardsWalletFunction::CreateRewardsWalletCallback,
+      this));
+
+  return RespondLater();
+}
+
+void BraveRewardsCreateRewardsWalletFunction::CreateRewardsWalletCallback(
+    ledger::mojom::Result result) {
+  Respond(OneArgument(base::Value(static_cast<int>(result))));
+}
+
+BraveRewardsGetRewardsWalletFunction::~BraveRewardsGetRewardsWalletFunction() =
+    default;
+
+ExtensionFunction::ResponseAction BraveRewardsGetRewardsWalletFunction::Run() {
+  Profile* profile = Profile::FromBrowserContext(browser_context());
+  auto* rewards_service = RewardsServiceFactory::GetForProfile(profile);
+  if (!rewards_service) {
+    return RespondNow(Error("RewardsService not available"));
+  }
+
+  rewards_service->GetRewardsWallet(base::BindOnce(
+      &BraveRewardsGetRewardsWalletFunction::GetRewardsWalletCallback, this));
+  return RespondLater();
+}
+
+void BraveRewardsGetRewardsWalletFunction::GetRewardsWalletCallback(
+    ledger::mojom::RewardsWalletPtr rewards_wallet) {
+  if (!rewards_wallet) {
+    return Respond(NoArguments());
+  }
+  base::Value::Dict dict;
+  dict.Set("paymentId", rewards_wallet->payment_id);
+  Respond(OneArgument(base::Value(std::move(dict))));
+}
+
 BraveRewardsGetBalanceReportFunction::~BraveRewardsGetBalanceReportFunction() =
     default;
 
@@ -634,10 +682,31 @@ ExtensionFunction::ResponseAction BraveRewardsFetchPromotionsFunction::Run() {
   Profile* profile = Profile::FromBrowserContext(browser_context());
   RewardsService* rewards_service =
       RewardsServiceFactory::GetForProfile(profile);
-  if (rewards_service) {
-    rewards_service->FetchPromotions();
+  if (!rewards_service) {
+    return RespondNow(Error("Rewards service is not available"));
   }
-  return RespondNow(NoArguments());
+
+  rewards_service->FetchPromotions(base::BindOnce(
+      &BraveRewardsFetchPromotionsFunction::OnPromotionsFetched, this));
+
+  return RespondLater();
+}
+
+void BraveRewardsFetchPromotionsFunction::OnPromotionsFetched(
+    std::vector<ledger::mojom::PromotionPtr> promotions) {
+  base::Value::List list;
+  for (auto& item : promotions) {
+    base::Value::Dict dict;
+    dict.Set("promotionId", item->id);
+    dict.Set("type", static_cast<int>(item->type));
+    dict.Set("status", static_cast<int>(item->status));
+    dict.Set("createdAt", static_cast<double>(item->created_at));
+    dict.Set("claimableUntil", static_cast<double>(item->claimable_until));
+    dict.Set("expiresAt", static_cast<double>(item->expires_at));
+    dict.Set("amount", item->approximate_value);
+    list.Append(std::move(dict));
+  }
+  Respond(OneArgument(base::Value(std::move(list))));
 }
 
 BraveRewardsClaimPromotionFunction::~BraveRewardsClaimPromotionFunction() =
@@ -755,9 +824,8 @@ ExtensionFunction::ResponseAction BraveRewardsSaveAdsSettingFunction::Run() {
   }
 
   if (params->key == "adsEnabled") {
-    const auto is_enabled =
-        params->value == "true" && ads_service->IsSupportedLocale();
-    rewards_service->SetAdsEnabled(is_enabled);
+    ads_service->SetEnabled(params->value == "true" &&
+                            ads_service->IsSupportedLocale());
   }
 
   return RespondNow(NoArguments());
@@ -1205,21 +1273,6 @@ ExtensionFunction::ResponseAction BraveRewardsIsInitializedFunction::Run() {
       base::Value(rewards_service && rewards_service->IsInitialized())));
 }
 
-BraveRewardsShouldShowOnboardingFunction::
-    ~BraveRewardsShouldShowOnboardingFunction() = default;
-
-ExtensionFunction::ResponseAction
-BraveRewardsShouldShowOnboardingFunction::Run() {
-  Profile* profile = Profile::FromBrowserContext(browser_context());
-  auto* rewards_service = RewardsServiceFactory::GetForProfile(profile);
-  if (!rewards_service) {
-    return RespondNow(Error("Rewards service is not initialized"));
-  }
-
-  const bool should_show = rewards_service->ShouldShowOnboarding();
-  return RespondNow(OneArgument(base::Value(should_show)));
-}
-
 BraveRewardsGetScheduledCaptchaInfoFunction::
     ~BraveRewardsGetScheduledCaptchaInfoFunction() = default;
 
@@ -1279,28 +1332,13 @@ BraveRewardsUpdateScheduledCaptchaResultFunction::Run() {
 #endif
 }
 
-BraveRewardsEnableRewardsFunction::~BraveRewardsEnableRewardsFunction() =
-    default;
-
-ExtensionFunction::ResponseAction BraveRewardsEnableRewardsFunction::Run() {
-  auto* profile = Profile::FromBrowserContext(browser_context());
-  auto* rewards_service = RewardsServiceFactory::GetForProfile(profile);
-  if (!rewards_service)
-    return RespondNow(Error("Rewards service is not initialized"));
-
-  rewards_service->EnableRewards();
-  return RespondNow(NoArguments());
-}
-
 BraveRewardsEnableAdsFunction::~BraveRewardsEnableAdsFunction() = default;
 
 ExtensionFunction::ResponseAction BraveRewardsEnableAdsFunction::Run() {
   auto* profile = Profile::FromBrowserContext(browser_context());
-  auto* rewards_service = RewardsServiceFactory::GetForProfile(profile);
-  if (!rewards_service)
-    return RespondNow(Error("Rewards service is not initialized"));
-
-  rewards_service->SetAdsEnabled(true);
+  if (auto* ads_service = AdsServiceFactory::GetForProfile(profile)) {
+    ads_service->SetEnabled(true);
+  }
   return RespondNow(NoArguments());
 }
 

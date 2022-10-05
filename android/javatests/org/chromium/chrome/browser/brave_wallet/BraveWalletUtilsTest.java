@@ -31,6 +31,7 @@ import org.chromium.url.mojom.Url;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 @RunWith(ChromeJUnit4ClassRunner.class)
 public class BraveWalletUtilsTest {
@@ -77,17 +78,6 @@ public class BraveWalletUtilsTest {
 
     @Test
     @SmallTest
-    public void toHexWeiTest() {
-        assertEquals(Utils.toHexWei("5.2", 18), "0x482a1c7300080000");
-        assertEquals(Utils.toHexWei("5", 18), "0x4563918244f40000");
-        assertEquals(Utils.toHexWei("0.5", 18), "0x6f05b59d3b20000");
-        assertEquals(Utils.toHexWei("0.05", 18), "0xb1a2bc2ec50000");
-        assertEquals(Utils.toHexWei("0.01234567890123456789012", 18), "0x2bdc545d6b4b87");
-        assertEquals(Utils.toHexWei("", 18), "0x0");
-    }
-
-    @Test
-    @SmallTest
     public void fromWeiTest() {
         assertEquals(Utils.fromWei("50000000000000000000", 18), 50, 0.001);
         assertEquals(Utils.fromWei("5000000000000000000", 18), 5, 0.001);
@@ -99,14 +89,60 @@ public class BraveWalletUtilsTest {
 
     @Test
     @SmallTest
-    public void toWei() {
+    public void toHexWeiEnTest() {
+        Locale defaultLocal = Locale.getDefault();
+        Locale.setDefault(Locale.US);
+        assertEquals(Utils.toHexWei("5.2", 18), "0x482a1c7300080000");
+        assertEquals(Utils.toHexWei("5", 18), "0x4563918244f40000");
+        assertEquals(Utils.toHexWei("0.5", 18), "0x6f05b59d3b20000");
+        assertEquals(Utils.toHexWei("0.05", 18), "0xb1a2bc2ec50000");
+        assertEquals(Utils.toHexWei("0.01234567890123456789012", 18), "0x2bdc545d6b4b87");
+        assertEquals(Utils.toHexWei("", 18), "0x0");
+        Locale.setDefault(defaultLocal);
+    }
+
+    @Test
+    @SmallTest
+    public void toHexWeiFrTest() {
+        Locale defaultLocal = Locale.getDefault();
+        Locale.setDefault(Locale.FRANCE);
+        assertEquals(Utils.toHexWei("5,2", 18), "0x482a1c7300080000");
+        assertEquals(Utils.toHexWei("5", 18), "0x4563918244f40000");
+        assertEquals(Utils.toHexWei("0,5", 18), "0x6f05b59d3b20000");
+        assertEquals(Utils.toHexWei("0,05", 18), "0xb1a2bc2ec50000");
+        assertEquals(Utils.toHexWei("0,01234567890123456789012", 18), "0x2bdc545d6b4b87");
+        assertEquals(Utils.toHexWei("", 18), "0x0");
+        Locale.setDefault(defaultLocal);
+    }
+
+    @Test
+    @SmallTest
+    public void toWeiEnTest() {
+        Locale defaultLocal = Locale.getDefault();
+        Locale.setDefault(Locale.US);
         assertEquals(Utils.toWei("50", 18, false), "50000000000000000000");
         assertEquals(Utils.toWei("5", 18, false), "5000000000000000000");
         assertEquals(Utils.toWei("0.5", 18, false), "500000000000000000");
         assertEquals(Utils.toWei("0.05", 18, false), "50000000000000000");
         assertEquals(Utils.toWei("0.123456789012345678901", 18, false), "123456789012345678");
         assertEquals(Utils.toWei("", 18, false), "");
-        assertEquals(Utils.toWei("", 18, true), "");
+        assertEquals(Utils.toWei("5", 18, true), "");
+        Locale.setDefault(defaultLocal);
+    }
+
+    @Test
+    @SmallTest
+    public void toWeiFrTest() {
+        Locale defaultLocal = Locale.getDefault();
+        Locale.setDefault(Locale.FRANCE);
+        assertEquals(Utils.toWei("50", 18, false), "50000000000000000000");
+        assertEquals(Utils.toWei("5", 18, false), "5000000000000000000");
+        assertEquals(Utils.toWei("0,5", 18, false), "500000000000000000");
+        assertEquals(Utils.toWei("0,05", 18, false), "50000000000000000");
+        assertEquals(Utils.toWei("0,123456789012345678901", 18, false), "123456789012345678");
+        assertEquals(Utils.toWei("", 18, false), "");
+        assertEquals(Utils.toWei("5", 18, true), "");
+        Locale.setDefault(defaultLocal);
     }
 
     @Test
@@ -187,29 +223,29 @@ public class BraveWalletUtilsTest {
     @Test
     @SmallTest
     public void getContractAddressTest() {
-        assertEquals(Utils.getContractAddress(BraveWalletConstants.ROPSTEN_CHAIN_ID, "USDC",
+        assertEquals(Utils.getContractAddress(BraveWalletConstants.GOERLI_CHAIN_ID, "USDC",
                              "0xdef1c0ded9bec7f1a1670819833240f027b25eff"),
-                "0x07865c6e87b9f70255377e024ace6630c1eaa37f");
-        assertEquals(Utils.getContractAddress(BraveWalletConstants.ROPSTEN_CHAIN_ID, "DAI",
+                "0x2f3a40a3db8a7e3d09b0adfefbce4f6f81927557");
+        assertEquals(Utils.getContractAddress(BraveWalletConstants.GOERLI_CHAIN_ID, "DAI",
                              "0xdef1c0ded9bec7f1a1670819833240f027b25eff"),
-                "0xad6d458402f60fd3bd25163575031acdce07538d");
-        assertEquals(Utils.getContractAddress(BraveWalletConstants.ROPSTEN_CHAIN_ID, "BAT",
+                "0x73967c6a0904aa032c103b4104747e88c566b1a2");
+        assertEquals(Utils.getContractAddress(BraveWalletConstants.GOERLI_CHAIN_ID, "BAT",
                              "0xdef1c0ded9bec7f1a1670819833240f027b25eff"),
                 "0xdef1c0ded9bec7f1a1670819833240f027b25eff");
-        assertEquals(Utils.getContractAddress(BraveWalletConstants.RINKEBY_CHAIN_ID, "USDC",
+        assertEquals(Utils.getContractAddress(BraveWalletConstants.SEPOLIA_CHAIN_ID, "USDC",
                              "0xdef1c0ded9bec7f1a1670819833240f027b25eff"),
                 "0xdef1c0ded9bec7f1a1670819833240f027b25eff");
     }
 
     @Test
     @SmallTest
-    public void getRopstenContractAddressTest() {
-        assertEquals(Utils.getRopstenContractAddress("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"),
-                "0x07865c6e87b9f70255377e024ace6630c1eaa37f");
-        assertEquals(Utils.getRopstenContractAddress("0x6b175474e89094c44da98b954eedeac495271d0f"),
-                "0xad6d458402f60fd3bd25163575031acdce07538d");
+    public void getGoerliContractAddressTest() {
+        assertEquals(Utils.getGoerliContractAddress("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"),
+                "0x2f3a40a3db8a7e3d09b0adfefbce4f6f81927557");
+        assertEquals(Utils.getGoerliContractAddress("0x6b175474e89094c44da98b954eedeac495271d0f"),
+                "0x73967c6a0904aa032c103b4104747e88c566b1a2");
         assertEquals(
-                Utils.getRopstenContractAddress("0xdef1c0ded9bec7f1a1670819833240f027b25eff"), "");
+                Utils.getGoerliContractAddress("0xdef1c0ded9bec7f1a1670819833240f027b25eff"), "");
     }
 
     private static String getStackTrace(Exception ex) {

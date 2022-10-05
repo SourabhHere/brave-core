@@ -16,6 +16,7 @@
 
 #include "base/base64.h"
 #include "base/bind.h"
+#include "base/containers/contains.h"
 #include "base/feature_list.h"
 #include "base/files/file_util.h"
 #include "base/files/important_file_writer.h"
@@ -37,9 +38,7 @@
 #include "bat/ads/pref_names.h"
 #include "bat/ledger/global_constants.h"
 #include "bat/ledger/public/ledger_database.h"
-#include "brave/browser/brave_ads/ads_service_factory.h"
 #include "brave/browser/ui/webui/brave_rewards_source.h"
-#include "brave/components/brave_ads/browser/ads_service.h"
 #include "brave/components/brave_rewards/browser/android_util.h"
 #include "brave/components/brave_rewards/browser/diagnostic_log.h"
 #include "brave/components/brave_rewards/browser/logging.h"
@@ -72,6 +71,7 @@
 #include "net/base/registry_controlled_domains/registry_controlled_domain.h"
 #include "net/base/url_util.h"
 #include "net/http/http_status_code.h"
+#include "services/data_decoder/public/cpp/json_sanitizer.h"
 #include "services/network/public/cpp/resource_request.h"
 #include "services/network/public/cpp/shared_url_loader_factory.h"
 #include "services/network/public/cpp/simple_url_loader.h"
@@ -271,6 +271,13 @@ bool ProcessPublisher(const GURL& url) {
 #endif
 }
 
+bool IsAdsOrAutoContributeEnabled(Profile* profile) {
+  DCHECK(profile);
+  auto* prefs = profile->GetPrefs();
+  return prefs->GetBoolean(prefs::kAutoContributeEnabled) ||
+         prefs->GetBoolean(ads::prefs::kEnabled);
+}
+
 std::string GetPrefPath(const std::string& name) {
   return base::StringPrintf("%s.%s", pref_prefix, name.c_str());
 }
@@ -374,7 +381,6 @@ bool RewardsServiceImpl::IsInitialized() {
 
 void RewardsServiceImpl::Init(
     std::unique_ptr<RewardsServiceObserver> extension_observer,
-    std::unique_ptr<RewardsServicePrivateObserver> private_observer,
     std::unique_ptr<RewardsNotificationServiceObserver> notification_observer) {
   notification_service_->Init(std::move(notification_observer));
   AddObserver(notification_service_.get());
@@ -384,14 +390,11 @@ void RewardsServiceImpl::Init(
     AddObserver(extension_observer_.get());
   }
 
-  if (private_observer) {
-    private_observer_ = std::move(private_observer);
-    private_observers_.AddObserver(private_observer_.get());
-  }
-
   CheckPreferences();
   InitPrefChangeRegistrar();
-  p3a::RecordAdsEnabledDuration(profile_->GetPrefs(), IsAdsEnabled());
+  p3a::RecordAdsEnabledDuration(
+      profile_->GetPrefs(),
+      profile_->GetPrefs()->GetBoolean(ads::prefs::kEnabled));
 }
 
 void RewardsServiceImpl::InitPrefChangeRegistrar() {
@@ -434,24 +437,45 @@ void RewardsServiceImpl::OnPreferenceChanged(const std::string& key) {
   }
 
   if (key == prefs::kAutoContributeEnabled || key == ads::prefs::kEnabled) {
-    bool rewards_enabled = IsRewardsEnabled();
-    if (rewards_enabled) {
+    if (IsAdsOrAutoContributeEnabled(profile_)) {
       RecordBackendP3AStats();
     } else {
       p3a::RecordRewardsDisabledForSomeMetrics();
     }
-    p3a::RecordAdsEnabledDuration(profile_->GetPrefs(), IsAdsEnabled());
+    p3a::RecordAdsEnabledDuration(
+        profile_->GetPrefs(),
+        profile_->GetPrefs()->GetBoolean(ads::prefs::kEnabled));
+  }
+
+  if (key == ads::prefs::kEnabled) {
+    bool ads_enabled = profile_->GetPrefs()->GetBoolean(ads::prefs::kEnabled);
+
+#if BUILDFLAG(ENABLE_GREASELION)
+    if (greaselion_service_) {
+      greaselion_service_->SetFeatureEnabled(greaselion::ADS, ads_enabled);
+    }
+#endif
+
+    for (auto& observer : observers_) {
+      observer.OnAdsEnabled(this, ads_enabled);
+    }
   }
 }
 
 void RewardsServiceImpl::CheckPreferences() {
-  const bool is_ac_enabled = profile_->GetPrefs()->GetBoolean(
-      brave_rewards::prefs::kAutoContributeEnabled);
-  const bool is_ads_enabled = profile_->GetPrefs()->GetBoolean(
-      ads::prefs::kEnabled);
+  auto* prefs = profile_->GetPrefs();
 
-  if (is_ac_enabled || is_ads_enabled) {
+  if (prefs->GetBoolean(prefs::kAutoContributeEnabled) ||
+      prefs->GetBoolean(ads::prefs::kEnabled)) {
+    // If the user has enabled Ads or AC, then start the background Rewards
+    // utility process.
     StartLedgerProcessIfNecessary();
+
+    // If the user has enabled Ads or AC, but the "enabled" pref is missing, set
+    // the "enabled" pref to true.
+    if (!prefs->GetUserPrefValue(prefs::kEnabled)) {
+      prefs->SetBoolean(prefs::kEnabled, true);
+    }
   }
 }
 
@@ -527,33 +551,61 @@ void RewardsServiceImpl::MaybeShowAddFundsNotification(
   }
 }
 
-void RewardsServiceImpl::AddPrivateObserver(
-    RewardsServicePrivateObserver* observer) {
-  private_observers_.AddObserver(observer);
-}
-
-void RewardsServiceImpl::RemovePrivateObserver(
-    RewardsServicePrivateObserver* observer) {
-  private_observers_.RemoveObserver(observer);
-}
-
-void RewardsServiceImpl::OnCreateRewardsWallet(
-    CreateRewardsWalletCallback callback,
-    ledger::mojom::Result result) {
-  std::move(callback).Run(result);
-}
-
 void RewardsServiceImpl::CreateRewardsWallet(
     CreateRewardsWalletCallback callback) {
-  if (!Connected()) {
-    return DeferCallback(FROM_HERE, std::move(callback),
-                         ledger::mojom::Result::LEDGER_ERROR);
-  }
+  auto on_start = [](base::WeakPtr<RewardsServiceImpl> self,
+                     CreateRewardsWalletCallback callback) {
+    if (!self) {
+      std::move(callback).Run(ledger::mojom::Result::LEDGER_ERROR);
+      return;
+    }
 
-  auto on_create = base::BindOnce(&RewardsServiceImpl::OnCreateRewardsWallet,
-                                  AsWeakPtr(), std::move(callback));
+    auto on_created = [](base::WeakPtr<RewardsServiceImpl> self,
+                         CreateRewardsWalletCallback callback,
+                         ledger::mojom::Result result) {
+      if (!self) {
+        std::move(callback).Run(ledger::mojom::Result::LEDGER_ERROR);
+        return;
+      }
 
-  bat_ledger_->CreateRewardsWallet(std::move(on_create));
+      if (result != ledger::mojom::Result::LEDGER_OK) {
+        std::move(callback).Run(result);
+        return;
+      }
+
+      // After successfully creating a Rewards wallet for the first time,
+      // automatically enable Ads and AC.
+      auto* prefs = self->profile_->GetPrefs();
+      if (!prefs->GetBoolean(prefs::kEnabled)) {
+        prefs->SetBoolean(prefs::kEnabled, true);
+        prefs->SetBoolean(ads::prefs::kEnabled, true);
+
+        // Fetch the user's balance before turning on AC. We don't want to
+        // automatically turn on AC if for some reason the user has a current
+        // balance, as this could result in unintentional BAT transfers.
+        auto on_balance = [](base::WeakPtr<RewardsServiceImpl> self,
+                             ledger::mojom::Result result,
+                             ledger::mojom::BalancePtr balance) {
+          if (self && balance && balance->total == 0) {
+            self->SetAutoContributeEnabled(true);
+          }
+        };
+        self->FetchBalance(base::BindOnce(on_balance, self));
+      }
+
+      // Notify observers that the Rewards wallet has been created.
+      for (auto& observer : self->observers_) {
+        observer.OnRewardsWalletUpdated();
+      }
+
+      std::move(callback).Run(ledger::mojom::Result::LEDGER_OK);
+    };
+
+    self->bat_ledger_->CreateRewardsWallet(
+        base::BindOnce(on_created, self, std::move(callback)));
+  };
+
+  StartProcess(base::BindOnce(on_start, AsWeakPtr(), std::move(callback)));
 }
 
 void RewardsServiceImpl::GetActivityInfoList(
@@ -763,10 +815,6 @@ void RewardsServiceImpl::Shutdown() {
     RemoveObserver(extension_observer_.get());
   }
 
-  if (private_observer_) {
-    private_observers_.RemoveObserver(private_observer_.get());
-  }
-
   BitmapFetcherService* image_service =
       BitmapFetcherServiceFactory::GetForBrowserContext(profile_);
   if (image_service) {
@@ -790,7 +838,7 @@ void RewardsServiceImpl::OnLedgerInitialized(ledger::mojom::Result result) {
     ready_->Signal();
   }
 
-  if (IsRewardsEnabled()) {
+  if (IsAdsOrAutoContributeEnabled(profile_)) {
     RecordBackendP3AStats();
   } else {
     p3a::RecordRewardsDisabledForSomeMetrics();
@@ -1013,6 +1061,27 @@ void RewardsServiceImpl::OnURLLoaderComplete(
     }
   }
 
+  if (response_body && !response_body->empty() && loader->ResponseInfo() &&
+      base::Contains(loader->ResponseInfo()->mime_type, "json")) {
+    return data_decoder::JsonSanitizer::Sanitize(
+        *response_body,
+        base::BindOnce(
+            [](ledger::client::LoadURLCallback callback,
+               ledger::mojom::UrlResponse response,
+               data_decoder::JsonSanitizer::Result result) {
+              if (result.value) {
+                response.body = std::move(*result.value);
+              } else {
+                response.body = {};
+                VLOG(0) << "Response sanitization error: "
+                        << (result.error ? *result.error : "unknown");
+              }
+
+              std::move(callback).Run(response);
+            },
+            std::move(callback), std::move(response)));
+  }
+
   std::move(callback).Run(response);
 }
 
@@ -1025,26 +1094,27 @@ void RewardsServiceImpl::GetRewardsParameters(
   bat_ledger_->GetRewardsParameters(std::move(callback));
 }
 
-void RewardsServiceImpl::OnFetchPromotions(
-    ledger::mojom::Result result,
-    std::vector<ledger::mojom::PromotionPtr> promotions) {
-  for (auto& observer : observers_) {
-    std::vector<ledger::mojom::PromotionPtr> promotions_clone;
-    for (auto& promotion : promotions) {
-      promotions_clone.push_back(promotion->Clone());
-    }
-    observer.OnFetchPromotions(this, result, std::move(promotions_clone));
-  }
-}
-
-void RewardsServiceImpl::FetchPromotions() {
+void RewardsServiceImpl::FetchPromotions(FetchPromotionsCallback callback) {
   if (!Connected()) {
-    return;
+    return DeferCallback(FROM_HERE, std::move(callback),
+                         std::vector<ledger::mojom::PromotionPtr>());
   }
 
-  bat_ledger_->FetchPromotions(base::BindOnce(
-      &RewardsServiceImpl::OnFetchPromotions,
-      AsWeakPtr()));
+  auto on_fetch = [](base::WeakPtr<RewardsServiceImpl> self,
+                     FetchPromotionsCallback callback,
+                     ledger::mojom::Result result,
+                     std::vector<ledger::mojom::PromotionPtr> promotions) {
+    if (self) {
+      for (auto& observer : self->observers_) {
+        observer.OnFetchPromotions(self.get(), result, promotions);
+      }
+    }
+
+    std::move(callback).Run(std::move(promotions));
+  };
+
+  bat_ledger_->FetchPromotions(
+      base::BindOnce(on_fetch, AsWeakPtr(), std::move(callback)));
 }
 
 void ParseCaptchaResponse(
@@ -1562,66 +1632,6 @@ void RewardsServiceImpl::SetAutoContributeEnabled(bool enabled) {
   bat_ledger_->SetAutoContributeEnabled(enabled);
 }
 
-bool RewardsServiceImpl::ShouldShowOnboarding() const {
-  const bool enabled = profile_->GetPrefs()->GetBoolean(prefs::kEnabled);
-
-  bool ads_enabled = false;
-  bool ads_supported = true;
-  auto* ads_service = brave_ads::AdsServiceFactory::GetForProfile(profile_);
-  if (ads_service) {
-    ads_enabled = ads_service->IsEnabled();
-    ads_supported = ads_service->IsSupportedLocale();
-  }
-
-  return !enabled && !ads_enabled && ads_supported;
-}
-
-void RewardsServiceImpl::EnableRewards() {
-  StartProcess(base::BindOnce(
-      &RewardsServiceImpl::OnStartProcessForEnableRewards, AsWeakPtr()));
-}
-
-void RewardsServiceImpl::OnStartProcessForEnableRewards() {
-  auto* prefs = profile_->GetPrefs();
-  if (!prefs->GetBoolean(prefs::kEnabled)) {
-    // Store the user's opt-in in prefs. The enabled pref was discontinued after
-    // 1.18 when the Rewards toggle was removed from the UI. However, this
-    // created problems in scenarios where we need to know whether the user
-    // has previously consented to background Rewards functionality.
-    prefs->SetBoolean(prefs::kEnabled, true);
-
-    // If Rewards are not currently enabled, fetch the user's balance before
-    // turning on AC.
-    FetchBalance(base::BindOnce(
-        &RewardsServiceImpl::OnFetchBalanceForEnableRewards, AsWeakPtr()));
-  }
-
-  SetAdsEnabled(true);
-}
-
-void RewardsServiceImpl::OnFetchBalanceForEnableRewards(
-    ledger::mojom::Result result,
-    ledger::mojom::BalancePtr balance) {
-  // Do not enable AC on Rewards opt-in if the user has a non-zero balance, as
-  // this could result in unintentional BAT transfers.
-  if (balance && balance->total == 0)
-    SetAutoContributeEnabled(true);
-}
-
-void RewardsServiceImpl::OnAdsEnabled(bool ads_enabled) {
-#if BUILDFLAG(ENABLE_GREASELION)
-  if (greaselion_service_) {
-    greaselion_service_->SetFeatureEnabled(
-        greaselion::ADS,
-        profile_->GetPrefs()->GetBoolean(ads::prefs::kEnabled));
-  }
-#endif
-
-  for (auto& observer : observers_) {
-    observer.OnAdsEnabled(this, ads_enabled);
-  }
-}
-
 void RewardsServiceImpl::OnGetBalanceReport(
     GetBalanceReportCallback callback,
     const ledger::mojom::Result result,
@@ -1699,7 +1709,7 @@ void RewardsServiceImpl::OnPanelPublisherInfo(
     return;
   }
 
-  for (auto& observer : private_observers_)
+  for (auto& observer : observers_)
     observer.OnPanelPublisherInfo(this,
                                   result,
                                   info.get(),
@@ -1851,7 +1861,7 @@ void RewardsServiceImpl::GetPublisherInfo(
     const std::string& publisher_key,
     GetPublisherInfoCallback callback) {
   if (!Connected()) {
-    if (!IsRewardsEnabled()) {
+    if (!profile_->GetPrefs()->GetBoolean(prefs::kEnabled)) {
       return DeferCallback(FROM_HERE, std::move(callback),
                            ledger::mojom::Result::LEDGER_ERROR, nullptr);
     }
@@ -1887,7 +1897,7 @@ void RewardsServiceImpl::SavePublisherInfo(
     ledger::mojom::PublisherInfoPtr publisher_info,
     SavePublisherInfoCallback callback) {
   if (!Connected()) {
-    if (!IsRewardsEnabled()) {
+    if (!profile_->GetPrefs()->GetBoolean(prefs::kEnabled)) {
       return DeferCallback(FROM_HERE, std::move(callback),
                            ledger::mojom::Result::LEDGER_ERROR);
     }
@@ -2017,7 +2027,7 @@ void RewardsServiceImpl::OnNotificationTimerFired() {
 
   GetReconcileStamp(base::BindOnce(
       &RewardsServiceImpl::MaybeShowAddFundsNotification, AsWeakPtr()));
-  FetchPromotions();
+  FetchPromotions(base::DoNothing());
 }
 
 void RewardsServiceImpl::MaybeShowNotificationAddFunds() {
@@ -2868,11 +2878,6 @@ void RewardsServiceImpl::ClearAllNotifications() {
 void RewardsServiceImpl::CompleteReset(SuccessCallback callback) {
   resetting_rewards_ = true;
 
-  auto* ads_service = brave_ads::AdsServiceFactory::GetForProfile(profile_);
-  if (ads_service) {
-    ads_service->WipeState(/* should_shutdown */ true);
-  }
-
   StopNotificationTimers();
   notification_service_->DeleteAllNotifications(true);
 
@@ -2968,60 +2973,6 @@ void RewardsServiceImpl::GetRewardsWalletPassphrase(
   }
 
   bat_ledger_->GetRewardsWalletPassphrase(std::move(callback));
-}
-
-void RewardsServiceImpl::SetAdsEnabled(const bool is_enabled) {
-  if (!is_enabled) {
-    auto* ads_service = brave_ads::AdsServiceFactory::GetForProfile(profile_);
-    if (ads_service) {
-      ads_service->SetEnabled(is_enabled);
-    }
-    return;
-  }
-
-  if (!Connected()) {
-    StartProcess(base::BindOnce(
-        &RewardsServiceImpl::OnStartProcessForSetAdsEnabled, AsWeakPtr()));
-    return;
-  }
-
-  CreateRewardsWallet(base::BindOnce(
-      &RewardsServiceImpl::OnRewardsWalletCreatedForSetAdsEnabled,
-      AsWeakPtr()));
-}
-
-bool RewardsServiceImpl::IsAdsEnabled() const {
-  return profile_->GetPrefs()->GetBoolean(ads::prefs::kEnabled);
-}
-
-bool RewardsServiceImpl::IsRewardsEnabled() const {
-  // This method will return true if either Ads or AC are enabled. We do not
-  // currently check the value of the "enabled" pref because users do not have
-  // a way to set that pref to false.
-  if (profile_->GetPrefs()->GetBoolean(prefs::kAutoContributeEnabled))
-    return true;
-
-  if (IsAdsEnabled())
-    return true;
-
-  return false;
-}
-
-void RewardsServiceImpl::OnStartProcessForSetAdsEnabled() {
-  SetAdsEnabled(true);
-}
-
-void RewardsServiceImpl::OnRewardsWalletCreatedForSetAdsEnabled(
-    const ledger::mojom::Result result) {
-  if (result != ledger::mojom::Result::WALLET_CREATED) {
-    BLOG(0,  "Failed to create a wallet");
-    return;
-  }
-
-  auto* ads_service = brave_ads::AdsServiceFactory::GetForProfile(profile_);
-  if (ads_service) {
-    ads_service->SetEnabled(ads_service->IsSupportedLocale());
-  }
 }
 
 bool RewardsServiceImpl::IsBitFlyerRegion() const {

@@ -98,11 +98,16 @@ import org.chromium.ui.widget.Toast;
 import org.chromium.url.GURL;
 
 import java.io.InputStream;
+import java.lang.Number;
 import java.lang.NumberFormatException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -387,33 +392,34 @@ public class Utils {
         return 0;
     }
 
+    // Supposedly toWei shall always end up with an integer
+    private static BigInteger toWeiInternal(String number, int decimals) throws ParseException {
+        NumberFormat nf = NumberFormat.getInstance(Locale.getDefault());
+        ParsePosition parsePosition = new ParsePosition(0);
+        BigDecimal parsed = null;
+        if (nf instanceof DecimalFormat) {
+            DecimalFormat df = (DecimalFormat) nf;
+            df.setParseBigDecimal(true);
+            parsed = (BigDecimal) df.parse(number, parsePosition);
+        }
+
+        if (parsed == null || parsePosition.getIndex() != number.length())
+            throw new ParseException(
+                    "Invalid input string to BigDecimal at ", parsePosition.getIndex());
+        BigDecimal multiplier = BigDecimal.TEN.pow(decimals);
+        return parsed.multiply(multiplier).toBigInteger();
+    }
+
     public static String toWei(String number, int decimals, boolean calculateOtherAsset) {
         if (number.isEmpty() || calculateOtherAsset) {
             return "";
         }
 
-        int dotPosition = number.indexOf(".");
-        String multiplier = Utils.getDecimalsDepNumber(decimals);
-        if (dotPosition != -1) {
-            int zeroToRemove = number.length() - dotPosition - 1;
-            if (zeroToRemove < multiplier.length()) {
-                multiplier = multiplier.substring(0, multiplier.length() - zeroToRemove);
-            } else {
-                number = number.substring(
-                        0, number.length() - (zeroToRemove - multiplier.length() + 1));
-                multiplier = "1";
-            }
-            number = number.replace(".", "");
-        }
         try {
-            BigInteger bigNumber = new BigInteger(number, 10);
-            BigInteger res = bigNumber.multiply(new BigInteger(multiplier));
-
-            return res.equals(BigInteger.ZERO) ? "" : res.toString();
-        } catch (NumberFormatException ex) {
+            return toWeiInternal(number, decimals).toString();
+        } catch (ParseException ex) {
+            return "";
         }
-
-        return "";
     }
 
     public static double fromWei(String number, int decimals) {
@@ -437,23 +443,12 @@ public class Utils {
         if (number.isEmpty()) {
             return "0x0";
         }
-        int dotPosition = number.indexOf(".");
-        String multiplier = Utils.getDecimalsDepNumber(decimals);
-        if (dotPosition != -1) {
-            int zeroToRemove = number.length() - dotPosition - 1;
-            if (zeroToRemove < multiplier.length()) {
-                multiplier = multiplier.substring(0, multiplier.length() - zeroToRemove);
-            } else {
-                number = number.substring(
-                        0, number.length() - (zeroToRemove - multiplier.length() + 1));
-                multiplier = "1";
-            }
-            number = number.replace(".", "");
-        }
-        BigInteger bigNumber = new BigInteger(number, 10);
-        BigInteger res = bigNumber.multiply(new BigInteger(multiplier));
 
-        return "0x" + res.toString(16);
+        try {
+            return "0x" + toWeiInternal(number, decimals).toString(16);
+        } catch (ParseException ex) {
+            return "0x0";
+        }
     }
 
     public static String toHexGWeiFromGWEI(String number) {
@@ -904,24 +899,24 @@ public class Utils {
     }
 
     public static String getContractAddress(String chainId, String symbol, String contractAddress) {
-        if (!chainId.equals(BraveWalletConstants.ROPSTEN_CHAIN_ID)) {
+        if (!chainId.equals(BraveWalletConstants.GOERLI_CHAIN_ID)) {
             return contractAddress;
         }
         if (symbol.equals("USDC")) {
-            return "0x07865c6e87b9f70255377e024ace6630c1eaa37f";
+            return "0x2f3a40a3db8a7e3d09b0adfefbce4f6f81927557";
         } else if (symbol.equals("DAI")) {
-            return "0xad6d458402f60fd3bd25163575031acdce07538d";
+            return "0x73967c6a0904aa032c103b4104747e88c566b1a2";
         }
 
         return contractAddress;
     }
 
-    public static String getRopstenContractAddress(String mainnetContractAddress) {
+    public static String getGoerliContractAddress(String mainnetContractAddress) {
         String lowerCaseAddress = mainnetContractAddress.toLowerCase(Locale.getDefault());
         if (lowerCaseAddress.equals("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48")) {
-            return "0x07865c6e87b9f70255377e024ace6630c1eaa37f";
+            return "0x2f3a40a3db8a7e3d09b0adfefbce4f6f81927557";
         } else if (lowerCaseAddress.equals("0x6b175474e89094c44da98b954eedeac495271d0f")) {
-            return "0xad6d458402f60fd3bd25163575031acdce07538d";
+            return "0x73967c6a0904aa032c103b4104747e88c566b1a2";
         }
 
         return "";
@@ -1036,7 +1031,7 @@ public class Utils {
         return asset;
     }
 
-    // Replace USDC and DAI contract addresses for Ropsten network
+    // Replace USDC and DAI contract addresses for Goerli network
     public static BlockchainToken[] fixupTokensRegistry(BlockchainToken[] tokens, String chainId) {
         for (BlockchainToken token : tokens) {
             token.contractAddress =
@@ -1614,14 +1609,26 @@ public class Utils {
         return result;
     }
 
-    public static boolean allowBuyAndSwap(String chainId) {
-        switch (chainId) {
-            case BraveWalletConstants.MAINNET_CHAIN_ID:
-                return true;
-            default:
-                break;
+    public static boolean allowBuy(String chainId) {
+        return WalletConstants.BUY_SUPPORTED_NETWORKS.contains(chainId);
+    }
+
+    public static boolean allowSwap(String chainId) {
+        return WalletConstants.SWAP_SUPPORTED_NETWORKS.contains(chainId);
+    }
+
+    public static double parseDouble(String s) throws ParseException {
+        if (s.isEmpty()) return 0d;
+
+        NumberFormat nf = NumberFormat.getNumberInstance(Locale.getDefault());
+        ParsePosition parsePosition = new ParsePosition(0);
+        Number num = nf.parse(s, parsePosition);
+
+        if (parsePosition.getIndex() != s.length()) {
+            throw new ParseException(
+                    "Invalid input string to parseDouble at ", parsePosition.getIndex());
         }
 
-        return false;
+        return num.doubleValue();
     }
 }

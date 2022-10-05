@@ -38,6 +38,15 @@ void ExtensionRewardsServiceObserver::OnRewardsInitialized(
   event_router->BroadcastEvent(std::move(event));
 }
 
+void ExtensionRewardsServiceObserver::OnRewardsWalletUpdated() {
+  if (auto* event_router = extensions::EventRouter::Get(profile_)) {
+    event_router->BroadcastEvent(std::make_unique<extensions::Event>(
+        extensions::events::BRAVE_START,
+        extensions::api::brave_rewards::OnRewardsWalletUpdated::kEventName,
+        base::Value::List()));
+  }
+}
+
 void ExtensionRewardsServiceObserver::OnPanelPublisherInfo(
     RewardsService* rewards_service,
     const ledger::mojom::Result result,
@@ -77,11 +86,10 @@ void ExtensionRewardsServiceObserver::OnFetchPromotions(
     return;
   }
 
-  std::vector<extensions::api::brave_rewards::OnPromotions::
-        PromotionsType> promotions;
+  std::vector<extensions::api::brave_rewards::Promotion> promotions;
 
   for (const auto& item : list) {
-    extensions::api::brave_rewards::OnPromotions::PromotionsType promotion;
+    extensions::api::brave_rewards::Promotion promotion;
     promotion.promotion_id = item->id;
     promotion.type = static_cast<int>(item->type);
     promotion.status = static_cast<int>(item->status);

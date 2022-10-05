@@ -43,6 +43,7 @@ const char kCookieListUuid[] = "AC023D22-AE88-4060-A978-4FEEEC4221693";
 
 constexpr webui::LocalizedString kLocalizedStrings[] = {
     {"braveShields", IDS_BRAVE_SHIELDS},
+    {"braveShieldsStandalone", IDS_BRAVE_SHIELDS_STANDALONE},
     {"braveShieldsEnable", IDS_BRAVE_SHIELDS_ENABLE},
     {"braveShieldsUp", IDS_BRAVE_SHIELDS_UP},
     {"braveShieldsDown", IDS_BRAVE_SHIELDS_DOWN},
@@ -86,6 +87,9 @@ constexpr webui::LocalizedString kLocalizedStrings[] = {
     {"braveShieldsBlockedScriptsLabel",
      IDS_BRAVE_SHIELDS_BLOCKED_SCRIPTS_LABEL},
 };
+
+const char kCookieListEnabledHistogram[] = "Brave.Shields.CookieListEnabled";
+const char kCookieListPromptHistogram[] = "Brave.Shields.CookieListPrompt";
 
 }  // namespace brave_shields
 

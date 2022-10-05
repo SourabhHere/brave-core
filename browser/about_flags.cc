@@ -31,6 +31,7 @@
 #include "brave/components/translate/core/common/buildflags.h"
 #include "build/build_config.h"
 #include "components/content_settings/core/common/features.h"
+#include "components/flags_ui/flags_state.h"
 #include "components/translate/core/browser/translate_prefs.h"
 #include "net/base/features.h"
 #include "third_party/blink/public/common/features.h"
@@ -190,6 +191,12 @@ constexpr char kBraveBlockScreenFingerprintingDescription[] =
     "Prevents JavaScript and CSS from learning the user's screen dimensions "
     "or window position.";
 
+constexpr char kBraveTorWindowsHttpsOnlyName[] =
+    "Use HTTPS-Only Mode in Private Windows with Tor";
+constexpr char kBraveTorWindowsHttpsOnlyDescription[] =
+    "Prevents Private Windows with Tor from making any insecure HTTP "
+    "connections without warning the user first.";
+
 constexpr char kBraveSpeedreaderName[] = "Enable SpeedReader";
 constexpr char kBraveSpeedreaderDescription[] =
     "Enables faster loading of simplified article-style web pages.";
@@ -295,6 +302,10 @@ constexpr char kBraveNewsName[] = "Enable Brave News";
 constexpr char kBraveNewsDescription[] =
     "Brave News is completely private and includes anonymized ads matched on "
     "your device.";
+
+constexpr char kBraveNewsV2Name[] = "Enable Brave News V2";
+constexpr char kBraveNewsV2Description[] =
+    "Use the new Brave News UI and sources lists";
 
 constexpr char kBraveNewsCardPeekFeatureName[] =
     "Brave News prompts on New Tab Page";
@@ -471,6 +482,11 @@ constexpr char kBraveVerticalTabsDescription[] =
      flag_descriptions::kBraveNewsDescription,                              \
      kOsDesktop | kOsAndroid,                                               \
      FEATURE_VALUE_TYPE(brave_today::features::kBraveNewsFeature)},         \
+    {"brave-news-v2",                                                       \
+     flag_descriptions::kBraveNewsV2Name,                                   \
+     flag_descriptions::kBraveNewsV2Description,                            \
+     kOsDesktop | flags_ui::kOsAndroid,                                     \
+     FEATURE_VALUE_TYPE(brave_today::features::kBraveNewsV2Feature)},       \
     {"brave-news-peek",                                                     \
      flag_descriptions::kBraveNewsCardPeekFeatureName,                      \
      flag_descriptions::kBraveNewsCardPeekFeatureDescription,               \
@@ -563,7 +579,8 @@ constexpr char kBraveVerticalTabsDescription[] =
     {"brave-adblock-cookie-list-opt-in",                                    \
      flag_descriptions::kBraveAdblockCookieListOptInName,                   \
      flag_descriptions::kBraveAdblockCookieListOptInDescription,            \
-     kOsDesktop, FEATURE_VALUE_TYPE(kBraveAdblockCookieListOptIn)},         \
+     kOsDesktop | kOsAndroid,                                               \
+     FEATURE_VALUE_TYPE(kBraveAdblockCookieListOptIn)},                     \
     {"brave-adblock-cosmetic-filtering",                                    \
      flag_descriptions::kBraveAdblockCosmeticFilteringName,                 \
      flag_descriptions::kBraveAdblockCosmeticFilteringDescription, kOsAll,  \
@@ -677,6 +694,11 @@ constexpr char kBraveVerticalTabsDescription[] =
       flag_descriptions::kBraveBlockScreenFingerprintingDescription,        \
       kOsAll, FEATURE_VALUE_TYPE(                                           \
           blink::features::kBraveBlockScreenFingerprinting)},               \
+    {"brave-tor-windows-https-only",                                        \
+      flag_descriptions::kBraveTorWindowsHttpsOnlyName,                     \
+      flag_descriptions::kBraveTorWindowsHttpsOnlyDescription,              \
+      kOsAll, FEATURE_VALUE_TYPE(                                           \
+          blink::features::kBraveTorWindowsHttpsOnly)},                     \
     BRAVE_IPFS_FEATURE_ENTRIES                                              \
     BRAVE_NATIVE_WALLET_FEATURE_ENTRIES                                     \
     BRAVE_NEWS_FEATURE_ENTRIES                                              \

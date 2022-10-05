@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
@@ -29,14 +30,7 @@ namespace content {
 class WebContents;
 }  // namespace content
 
-namespace gfx {
-class Image;
-}  // namespace gfx
-
-namespace image_fetcher {
-class ImageDecoder;
-}  // namespace image_fetcher
-
+class CustomBackgroundFileManager;
 class NtpCustomBackgroundService;
 class Profile;
 
@@ -58,6 +52,12 @@ class BraveNewTabPageHandler : public brave_new_tab_page::mojom::PageHandler,
  private:
   // brave_new_tab_page::mojom::PageHandler overrides:
   void ChooseLocalCustomBackground() override;
+  void UseCustomImageBackground(
+      const std::string& selected_background) override;
+  void GetCustomImageBackgrounds(
+      GetCustomImageBackgroundsCallback callback) override;
+  void RemoveCustomImageBackground(const std::string& background) override;
+
   void UseBraveBackground(const std::string& selected_background) override;
   void GetBraveBackgrounds(GetBraveBackgroundsCallback callback) override;
   void TryBraveSearchPromotion(const std::string& input,
@@ -70,11 +70,14 @@ class BraveNewTabPageHandler : public brave_new_tab_page::mojom::PageHandler,
 
   // Observe NTPCustomBackgroundImagesService.
   void OnBackgroundUpdated();
+  void OnCustomImageBackgroundsUpdated();
 
   // SelectFileDialog::Listener overrides:
   void FileSelected(const base::FilePath& path,
                     int index,
                     void* params) override;
+  void MultiFilesSelected(const std::vector<base::FilePath>& files,
+                          void* params) override;
   void FileSelectionCanceled(void* params) override;
 
   // TemplateURLServiceObserver overrides:
@@ -83,13 +86,9 @@ class BraveNewTabPageHandler : public brave_new_tab_page::mojom::PageHandler,
 
   bool IsCustomBackgroundImageEnabled() const;
   bool IsColorBackgroundEnabled() const;
-  image_fetcher::ImageDecoder* GetImageDecoder();
-  void ConvertSelectedImageFileAndSave(const base::FilePath& image_file);
-  void OnGotImageFile(absl::optional<std::string> input);
-  void OnImageDecoded(const gfx::Image& image);
-  void OnSavedEncodedImage(bool success);
-  base::FilePath GetSanitizedImageFilePath() const;
-  void DeleteSanitizedImageFile();
+  void OnSavedCustomImage(const base::FilePath& path);
+  void OnRemoveCustomImageBackground(const base::FilePath& path, bool success);
+
   void OnSearchPromotionDismissed();
   void NotifySearchPromotionDisabledIfNeeded() const;
   void InitForSearchPromotion();
@@ -101,8 +100,10 @@ class BraveNewTabPageHandler : public brave_new_tab_page::mojom::PageHandler,
   mojo::Remote<brave_new_tab_page::mojom::Page> page_;
   raw_ptr<Profile> profile_ = nullptr;
   raw_ptr<content::WebContents> web_contents_ = nullptr;
+
   scoped_refptr<ui::SelectFileDialog> select_file_dialog_;
-  std::unique_ptr<image_fetcher::ImageDecoder> image_decoder_;
+  std::unique_ptr<CustomBackgroundFileManager> file_manager_;
+
   base::WeakPtrFactory<BraveNewTabPageHandler> weak_factory_;
 };
 

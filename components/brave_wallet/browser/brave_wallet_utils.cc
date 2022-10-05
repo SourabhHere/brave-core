@@ -209,38 +209,6 @@ const mojom::NetworkInfo* GetAuroraMainnet() {
   return network_info.get();
 }
 
-const mojom::NetworkInfo* GetRinkebyTestNetwork() {
-  static base::NoDestructor<mojom::NetworkInfo> network_info(
-      {brave_wallet::mojom::kRinkebyChainId,
-       "Rinkeby Test Network",
-       {"https://rinkeby.etherscan.io"},
-       {},
-       0,
-       {},
-       "ETH",
-       "Ethereum",
-       18,
-       brave_wallet::mojom::CoinType::ETH,
-       true});
-  return network_info.get();
-}
-
-const mojom::NetworkInfo* GetRopstenTestNetwork() {
-  static base::NoDestructor<mojom::NetworkInfo> network_info(
-      {brave_wallet::mojom::kRopstenChainId,
-       "Ropsten Test Network",
-       {"https://ropsten.etherscan.io"},
-       {},
-       0,
-       {},
-       "ETH",
-       "Ethereum",
-       18,
-       brave_wallet::mojom::CoinType::ETH,
-       true});
-  return network_info.get();
-}
-
 const mojom::NetworkInfo* GetGoerliTestNetwork() {
   static base::NoDestructor<mojom::NetworkInfo> network_info(
       {brave_wallet::mojom::kGoerliChainId,
@@ -257,11 +225,11 @@ const mojom::NetworkInfo* GetGoerliTestNetwork() {
   return network_info.get();
 }
 
-const mojom::NetworkInfo* GetKovanTestNetwork() {
+const mojom::NetworkInfo* GetSepoliaTestNetwork() {
   static base::NoDestructor<mojom::NetworkInfo> network_info(
-      {brave_wallet::mojom::kKovanChainId,
-       "Kovan Test Network",
-       {"https://kovan.etherscan.io"},
+      {brave_wallet::mojom::kSepoliaChainId,
+       "Sepolia Test Network",
+       {"https://sepolia.etherscan.io"},
        {},
        0,
        {},
@@ -301,10 +269,8 @@ const std::vector<const mojom::NetworkInfo*>& GetKnownEthNetworks() {
       GetFantomOperaMainnet(),
       GetOptimismMainnet(),
       GetAuroraMainnet(),
-      GetRinkebyTestNetwork(),
-      GetRopstenTestNetwork(),
       GetGoerliTestNetwork(),
-      GetKovanTestNetwork(),
+      GetSepoliaTestNetwork(),
       GetEthLocalhost(),
       // clang-format on
   });
@@ -449,20 +415,16 @@ const std::vector<const mojom::NetworkInfo*>& GetKnownFilNetworks() {
 
 const base::flat_map<std::string, std::string> kInfuraSubdomains = {
     {brave_wallet::mojom::kMainnetChainId, "mainnet"},
-    {brave_wallet::mojom::kRinkebyChainId, "rinkeby"},
-    {brave_wallet::mojom::kRopstenChainId, "ropsten"},
     {brave_wallet::mojom::kGoerliChainId, "goerli"},
-    {brave_wallet::mojom::kKovanChainId, "kovan"}};
+    {brave_wallet::mojom::kSepoliaChainId, "sepolia"}};
 
 const base::flat_set<std::string> kInfuraChains = {
     brave_wallet::mojom::kMainnetChainId,
     brave_wallet::mojom::kPolygonMainnetChainId,
     brave_wallet::mojom::kOptimismMainnetChainId,
     brave_wallet::mojom::kAuroraMainnetChainId,
-    brave_wallet::mojom::kRinkebyChainId,
-    brave_wallet::mojom::kRopstenChainId,
-    brave_wallet::mojom::kGoerliChainId,
-    brave_wallet::mojom::kKovanChainId};
+    brave_wallet::mojom::kSepoliaChainId,
+    brave_wallet::mojom::kGoerliChainId};
 
 const base::flat_map<std::string, std::string> kSolanaSubdomains = {
     {brave_wallet::mojom::kSolanaMainnet, "mainnet"},
@@ -484,18 +446,6 @@ const base::flat_map<std::string, std::string>
 
 constexpr const char kEnsRegistryContractAddress[] =
     "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e";
-
-GURL GetInfuraURLForKnownChainId(const std::string& chain_id) {
-  auto endpoint = brave_wallet::GetInfuraEndpointForKnownChainId(chain_id);
-  if (!endpoint.empty())
-    return GURL(endpoint);
-
-  auto subdomain = brave_wallet::GetInfuraSubdomainForKnownChainId(chain_id);
-  if (subdomain.empty())
-    return GURL();
-  return GURL(
-      base::StringPrintf("https://%s-infura.brave.com/", subdomain.c_str()));
-}
 
 const base::Value::List* GetCustomNetworksList(PrefService* prefs,
                                                mojom::CoinType coin) {
@@ -623,6 +573,18 @@ mojom::NetworkInfoPtr GetChain(PrefService* prefs,
   }
 
   return nullptr;
+}
+
+GURL GetInfuraURLForKnownChainId(const std::string& chain_id) {
+  auto endpoint = brave_wallet::GetInfuraEndpointForKnownChainId(chain_id);
+  if (!endpoint.empty())
+    return GURL(endpoint);
+
+  auto subdomain = brave_wallet::GetInfuraSubdomainForKnownChainId(chain_id);
+  if (subdomain.empty())
+    return GURL();
+  return GURL(
+      base::StringPrintf("https://%s-infura.brave.com/", subdomain.c_str()));
 }
 
 std::string GetInfuraEndpointForKnownChainId(const std::string& chain_id) {

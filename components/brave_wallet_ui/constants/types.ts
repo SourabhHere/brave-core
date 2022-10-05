@@ -95,7 +95,6 @@ export type PanelTypes =
   | 'approveTransaction'
   | 'apps'
   | 'assets'
-  | 'assets'
   | 'buy'
   | 'connectHardwareWallet'
   | 'connectWithSite'
@@ -116,6 +115,7 @@ export type PanelTypes =
   | 'transactionDetails'
   | 'transactions'
   | 'currencies'
+  | 'transactionStatus'
 
 export type NavTypes =
   | 'crypto'
@@ -137,6 +137,10 @@ export type AddAccountNavTypes =
 export type AccountSettingsNavTypes =
   | 'details'
   | 'privateKey'
+
+export type AddCustomAssetFormNavTypes =
+  | 'token'
+  | 'nft'
 
 export type HardwareAccountSettingsNavTypes =
   | 'details'
@@ -160,9 +164,11 @@ export interface BuySendSwapObjectType {
   id: BuySendSwapTypes
 }
 
+export type TabNavTypes = TopTabNavTypes | AddAccountNavTypes | AccountSettingsNavTypes | HardwareAccountSettingsNavTypes | AddCustomAssetFormNavTypes
+
 export interface TopTabNavObjectType {
   name: string
-  id: TopTabNavTypes | AddAccountNavTypes | AccountSettingsNavTypes | HardwareAccountSettingsNavTypes
+  id: TabNavTypes
 }
 
 export interface NavObjectType {
@@ -242,6 +248,7 @@ export interface WalletState {
   coinMarketData: BraveWallet.CoinMarket[]
   selectedNetworkFilter: BraveWallet.NetworkInfo
   selectedAssetFilter: AssetFilterOption
+  selectedAccountFilter: WalletAccountType
   defaultAccounts: BraveWallet.AccountInfo[]
   onRampCurrencies: BraveWallet.OnRampCurrency[]
   selectedCurrency: BraveWallet.OnRampCurrency | undefined
@@ -252,6 +259,7 @@ export interface PanelState {
   hasInitialized: boolean
   connectToSiteOrigin: BraveWallet.OriginInfo
   selectedPanel: PanelTypes
+  lastSelectedPanel?: PanelTypes
   panelTitle: string
   connectingAccounts: string[]
   addChainRequest: BraveWallet.AddChainRequest
@@ -562,10 +570,7 @@ export type AllowSpendReturnPayload = {
 
 export const BuySupportedChains = [
   BraveWallet.MAINNET_CHAIN_ID,
-  BraveWallet.RINKEBY_CHAIN_ID,
-  BraveWallet.ROPSTEN_CHAIN_ID,
   BraveWallet.GOERLI_CHAIN_ID,
-  BraveWallet.KOVAN_CHAIN_ID,
   BraveWallet.LOCALHOST_CHAIN_ID,
   BraveWallet.POLYGON_MAINNET_CHAIN_ID,
   BraveWallet.BINANCE_SMART_CHAIN_MAINNET_CHAIN_ID,
@@ -721,6 +726,7 @@ export const SupportedCoinTypes = [
 export const SupportedOnRampNetworks = [
   BraveWallet.SOLANA_MAINNET,
   BraveWallet.MAINNET_CHAIN_ID, // ETH
+  BraveWallet.FILECOIN_MAINNET,
   BraveWallet.POLYGON_MAINNET_CHAIN_ID,
   BraveWallet.BINANCE_SMART_CHAIN_MAINNET_CHAIN_ID,
   BraveWallet.CELO_MAINNET_CHAIN_ID,
@@ -728,14 +734,11 @@ export const SupportedOnRampNetworks = [
   BraveWallet.FANTOM_MAINNET_CHAIN_ID,
   BraveWallet.CELO_MAINNET_CHAIN_ID,
   BraveWallet.OPTIMISM_MAINNET_CHAIN_ID
-
 ]
 
 export const SupportedTestNetworks = [
-  BraveWallet.RINKEBY_CHAIN_ID,
-  BraveWallet.ROPSTEN_CHAIN_ID,
   BraveWallet.GOERLI_CHAIN_ID,
-  BraveWallet.KOVAN_CHAIN_ID,
+  BraveWallet.SEPOLIA_CHAIN_ID,
   BraveWallet.LOCALHOST_CHAIN_ID,
   BraveWallet.SOLANA_DEVNET,
   BraveWallet.SOLANA_TESTNET,
@@ -801,3 +804,16 @@ export type AbbreviationOptions =
   | 'million'
   | 'billion'
   | 'trillion'
+
+export type AccountModalTypes =
+  | 'deposit'
+  | 'privateKey'
+  | 'edit'
+  | 'details'
+  | 'remove'
+
+export interface AccountButtonOptionsObjectType {
+  name: string
+  id: AccountModalTypes
+  icon: string
+}

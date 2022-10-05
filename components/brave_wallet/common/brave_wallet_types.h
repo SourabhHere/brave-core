@@ -44,6 +44,24 @@ absl::optional<uint256_t> MaxSolidityUint(size_t bits);
 absl::optional<int256_t> MaxSolidityInt(size_t bits);
 absl::optional<int256_t> MinSolidityInt(size_t bits);
 
+struct Log {
+  Log();
+  ~Log();
+  Log(const Log&);
+  bool operator==(const Log&) const;
+  bool operator!=(const Log&) const;
+
+  std::string address;
+  std::string block_hash;
+  uint256_t block_number;
+  std::string data;
+  uint32_t log_index;
+  bool removed;
+  std::vector<std::string> topics;
+  std::string transaction_hash;
+  uint32_t transaction_index;
+};
+
 struct TransactionReceipt {
   TransactionReceipt();
   ~TransactionReceipt();
@@ -60,7 +78,7 @@ struct TransactionReceipt {
   uint256_t cumulative_gas_used;
   uint256_t gas_used;
   std::string contract_address;
-  std::vector<std::string> logs;
+  std::vector<Log> logs;
   std::string logs_bloom;
   bool status;
 };
@@ -76,47 +94,6 @@ enum class ImportError {
   kJsonError,
   kPasswordError,
   kInternalError
-};
-
-// https://docs.rs/solana-program/latest/solana_program/system_instruction/enum.SystemInstruction.html
-enum class SolanaSystemInstruction {
-  kCreateAccount = 0,
-  kAssign,
-  kTransfer,
-  kCreateAccountWithSeed,
-  kAdvanceNonceAccount,
-  kWithdrawNonceAccount,
-  kInitializeNonceAccount,
-  kAuthorizeNonceAccount,
-  kAllocate,
-  kAllocateWithSeed,
-  kAssignWithSeed,
-  kTransferWithSeed
-};
-
-// https://docs.rs/spl-token/latest/spl_token/instruction/enum.TokenInstruction.html
-enum class SolanaTokenInstruction {
-  kInitializeMint = 0,
-  kInitializeAccount,
-  kInitializeMultisig,
-  kTransfer,
-  kApprove,
-  kRevoke,
-  kSetAuthority,
-  kMintTo,
-  kBurn,
-  kCloseAccount,
-  kFreezeAccount,
-  kThawAccount,
-  kTransferChecked,
-  kApproveChecked,
-  kMintToChecked,
-  kBurnChecked,
-  kInitializeAccount2,
-  kSyncNative,
-  kInitializeAccount3,
-  kInitializeMultisig2,
-  kInitializeMint2
 };
 
 struct SolanaSignatureStatus {

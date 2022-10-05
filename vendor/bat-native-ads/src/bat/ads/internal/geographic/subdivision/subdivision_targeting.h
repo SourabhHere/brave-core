@@ -35,6 +35,8 @@ class SubdivisionTargeting final : public LocaleManagerObserver,
 
   bool IsDisabled() const;
 
+  bool ShouldAutoDetect() const;
+
   void MaybeAllow();
 
   void MaybeFetch();
@@ -51,8 +53,7 @@ class SubdivisionTargeting final : public LocaleManagerObserver,
   bool IsSupportedLocale(const std::string& locale) const;
   void MaybeAllowForLocale(const std::string& locale);
   void MaybeResetSubdivisionCodeToAutoDetect();
-
-  bool ShouldAutoDetect() const;
+  void MaybeResetSubdivisionCodeToDisabled();
 
   void MaybeFetchForLocale(const std::string& locale);
   void Fetch();

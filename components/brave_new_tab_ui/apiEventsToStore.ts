@@ -9,7 +9,7 @@ import * as statsAPI from './api/stats'
 import * as topSitesAPI from './api/topSites'
 import * as privateTabDataAPI from './api/privateTabData'
 import * as newTabAdsDataAPI from './api/newTabAdsData'
-import getNTPBrowserAPI, { Background } from './api/background'
+import getNTPBrowserAPI, { Background, CustomBackground } from './api/background'
 import { getInitialData, getRewardsInitialData, getRewardsPreInitialData } from './api/initialData'
 import * as backgroundData from './data/backgrounds'
 
@@ -44,6 +44,10 @@ async function onBackgroundUpdated (background: Background) {
   getActions().customBackgroundUpdated(background)
 }
 
+async function onCustomImageBackgroundsUpdated (backgrounds: CustomBackground[]) {
+  getActions().customImageBackgroundsUpdated(backgrounds)
+}
+
 // Not marked as async so we don't return a promise
 // and confuse callers
 export function wireApiEventsToStore () {
@@ -65,6 +69,7 @@ export function wireApiEventsToStore () {
     backgroundData.updateImages(initialData.braveBackgrounds)
 
     getNTPBrowserAPI().addBackgroundUpdatedListener(onBackgroundUpdated)
+    getNTPBrowserAPI().addCustomImageBackgroundsUpdatedListener(onCustomImageBackgroundsUpdated)
     getNTPBrowserAPI().addSearchPromotionDisabledListener(() => getActions().searchPromotionDisabled())
   })
   .catch(e => {
@@ -73,10 +78,17 @@ export function wireApiEventsToStore () {
 }
 
 export function rewardsInitData () {
-  getRewardsPreInitialData()
-  .then((preInitialRewardsData) => {
+  getRewardsPreInitialData().then((preInitialRewardsData) => {
     getActions().setPreInitialRewardsData(preInitialRewardsData)
-    fetchRewardsData()
+
+    chrome.braveRewards.isInitialized((isInitialized) => {
+      if (isInitialized) {
+        getRewardsInitialData().then((data) => {
+          getActions().setInitialRewardsData(data)
+        })
+      }
+    })
+
     setRewardsFetchInterval()
   })
   .catch(e => {
@@ -84,31 +96,30 @@ export function rewardsInitData () {
   })
 }
 
+let intervalId = 0
 function setRewardsFetchInterval () {
-  window.setInterval(() => {
-    fetchRewardsData()
-  }, 30000)
+  if (!intervalId) {
+    intervalId = window.setInterval(() => { fetchRewardsData() }, 30000)
+  }
 }
 
 function fetchRewardsData () {
-  chrome.braveRewards.isInitialized((initialized: boolean) => {
-    if (!initialized) {
+  chrome.braveRewards.isInitialized((isInitialized) => {
+    if (!isInitialized) {
       return
     }
 
-    getRewardsInitialData()
-    .then((initialRewardsData) => {
-      getActions().setInitialRewardsData(initialRewardsData)
-    })
-    .catch(e => {
-      console.error('Error fetching initial rewards data: ', e)
-    })
+    Promise.all([getRewardsPreInitialData(), getRewardsInitialData()]).then(
+      ([preInitialData, initialData]) => {
+        getActions().setPreInitialRewardsData(preInitialData)
+        getActions().setInitialRewardsData(initialData)
+      })
   })
 }
 
-chrome.braveRewards.initialized.addListener((result: any | NewTab.RewardsResult) => {
-  fetchRewardsData()
-})
+chrome.braveRewards.initialized.addListener(fetchRewardsData)
+
+chrome.braveRewards.onRewardsWalletUpdated.addListener(fetchRewardsData)
 
 chrome.braveRewards.onAdsEnabled.addListener((enabled: boolean) => {
   getActions().onAdsEnabled(enabled)

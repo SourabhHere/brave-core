@@ -5,13 +5,17 @@
 
 #include "brave/browser/ntp_background/ntp_custom_background_images_service_delegate.h"
 
+#include <utility>
+
 #include "base/files/file_path.h"
 #include "brave/browser/brave_browser_process.h"
 #include "brave/browser/ntp_background/constants.h"
+#include "brave/browser/ntp_background/custom_background_file_manager.h"
 #include "brave/browser/ntp_background/ntp_background_prefs.h"
 #include "brave/components/constants/pref_names.h"
 #include "brave/components/ntp_background_images/browser/ntp_background_images_data.h"
 #include "brave/components/ntp_background_images/browser/ntp_background_images_service.h"
+#include "brave/components/ntp_background_images/browser/url_constants.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/common/pref_names.h"
 #include "chrome/common/url_constants.h"
@@ -20,26 +24,76 @@
 
 NTPCustomBackgroundImagesServiceDelegate::
     NTPCustomBackgroundImagesServiceDelegate(Profile* profile)
-    : profile_(profile) {}
+    : profile_(profile),
+      file_manager_(std::make_unique<CustomBackgroundFileManager>(profile_)) {
+  if (ShouldMigrateCustomImagePref()) {
+    DVLOG(2) << "Migrate old custom background image";
+
+    MigrateCustomImage();
+  }
+}
 
 NTPCustomBackgroundImagesServiceDelegate::
     ~NTPCustomBackgroundImagesServiceDelegate() = default;
 
-bool NTPCustomBackgroundImagesServiceDelegate::IsCustomImageBackgroundEnabled()
+bool NTPCustomBackgroundImagesServiceDelegate::ShouldMigrateCustomImagePref()
     const {
-  auto* prefs = profile_->GetPrefs();
-  if (prefs->IsManagedPreference(prefs::kNtpCustomBackgroundDict))
-    return false;
-
-  return NTPBackgroundPrefs(prefs).IsCustomImageType();
+  auto prefs = NTPBackgroundPrefs(profile_->GetPrefs());
+  return prefs.IsCustomImageType() && prefs.GetCustomImageList().empty();
 }
 
-base::FilePath NTPCustomBackgroundImagesServiceDelegate::
-    GetCustomBackgroundImageLocalFilePath() const {
-  if (!IsCustomImageBackgroundEnabled())
-    return base::FilePath();
-  return profile_->GetPath().AppendASCII(
-      ntp_background_images::kSanitizedImageFileName);
+void NTPCustomBackgroundImagesServiceDelegate::MigrateCustomImage(
+    base::OnceCallback<void(bool)> callback) {
+  auto prefs = NTPBackgroundPrefs(profile_->GetPrefs());
+  file_manager_->MoveImage(
+      base::FilePath(profile_->GetPath().AppendASCII(
+          ntp_background_images::kSanitizedImageFileNameDeprecated)),
+      base::BindOnce(
+          [](Profile* profile, bool result) {
+            auto prefs = NTPBackgroundPrefs(profile->GetPrefs());
+            if (!result) {
+              LOG(ERROR) << "Failed to migrate Custom background image. "
+                            "Resets to default background";
+              prefs.SetType(NTPBackgroundPrefs::Type::kBrave);
+              prefs.SetShouldUseRandomValue(true);
+              prefs.SetSelectedValue(std::string());
+              return false;
+            }
+
+            prefs.SetSelectedValue(
+                ntp_background_images::kSanitizedImageFileNameDeprecated);
+            prefs.AddCustomImageToList(
+                ntp_background_images::kSanitizedImageFileNameDeprecated);
+            return true;
+          },
+          profile_)
+          .Then(std::move(callback)));
+}
+
+bool NTPCustomBackgroundImagesServiceDelegate::IsCustomImageBackgroundEnabled()
+    const {
+  if (profile_->GetPrefs()->IsManagedPreference(
+          prefs::kNtpCustomBackgroundDict)) {
+    return false;
+  }
+
+  return NTPBackgroundPrefs(profile_->GetPrefs()).IsCustomImageType();
+}
+
+base::FilePath
+NTPCustomBackgroundImagesServiceDelegate::GetCustomBackgroundImageLocalFilePath(
+    const GURL& url) const {
+  return CustomBackgroundFileManager::Converter(url, file_manager_.get())
+      .To<base::FilePath>();
+}
+
+GURL NTPCustomBackgroundImagesServiceDelegate::GetCustomBackgroundImageURL()
+    const {
+  DCHECK(IsCustomImageBackgroundEnabled());
+
+  auto prefs = NTPBackgroundPrefs(profile_->GetPrefs());
+  auto name = absl::get<std::string>(prefs.GetSelectedValue());
+  return CustomBackgroundFileManager::Converter(name).To<GURL>();
 }
 
 bool NTPCustomBackgroundImagesServiceDelegate::IsColorBackgroundEnabled()

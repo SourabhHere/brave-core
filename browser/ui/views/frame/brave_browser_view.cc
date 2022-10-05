@@ -34,6 +34,7 @@
 #include "chrome/browser/ui/views/frame/tab_strip_region_view.h"
 #include "chrome/browser/ui/views/tabs/tab_search_button.h"
 #include "chrome/browser/ui/views/toolbar/browser_app_menu_button.h"
+#include "chrome/common/pref_names.h"
 #include "extensions/buildflags/buildflags.h"
 #include "third_party/abseil-cpp/absl/types/optional.h"
 #include "ui/events/event_observer.h"
@@ -190,7 +191,8 @@ BraveBrowserView::BraveBrowserView(std::unique_ptr<Browser> browser)
   right_aligned_side_panel_ = sidebar_container_view_->side_panel();
   if (show_vertical_tabs) {
     vertical_tabs_container_ = contents_container_->AddChildView(
-        std::make_unique<VerticalTabStripRegionView>(tab_strip_region_view_));
+        std::make_unique<VerticalTabStripRegionView>(browser_.get(),
+                                                     tab_strip_region_view_));
   }
 
   contents_container_->SetLayoutManager(
@@ -203,11 +205,24 @@ BraveBrowserView::BraveBrowserView(std::unique_ptr<Browser> browser)
   // re-ordering. FindBarHost widgets uses this view as a  kHostViewKey.
   // See the comments of BrowserView::find_bar_host_view().
   ReorderChildView(find_bar_host_view_, -1);
+
+  if (can_have_sidebar) {
+    pref_change_registrar_.Add(
+        prefs::kSidePanelHorizontalAlignment,
+        base::BindRepeating(&BraveBrowserView::OnPreferenceChanged,
+                            base::Unretained(this)));
+    UpdateSideBarHorizontalAlignment();
+  }
 }
 
 void BraveBrowserView::OnPreferenceChanged(const std::string& pref_name) {
   if (pref_name == kTabsSearchShow) {
     UpdateSearchTabsButtonState();
+    return;
+  }
+
+  if (pref_name == prefs::kSidePanelHorizontalAlignment) {
+    UpdateSideBarHorizontalAlignment();
     return;
   }
 
@@ -217,6 +232,19 @@ void BraveBrowserView::OnPreferenceChanged(const std::string& pref_name) {
     return;
   }
 #endif
+}
+
+void BraveBrowserView::UpdateSideBarHorizontalAlignment() {
+  DCHECK(sidebar_container_view_);
+
+  const bool on_left = !GetProfile()->GetPrefs()->GetBoolean(
+      prefs::kSidePanelHorizontalAlignment);
+
+  sidebar_container_view_->SetSidebarOnLeft(on_left);
+  static_cast<BraveContentsLayoutManager*>(GetContentsLayoutManager())
+      ->set_sidebar_on_left(on_left);
+
+  contents_container_->Layout();
 }
 
 void BraveBrowserView::UpdateSearchTabsButtonState() {
@@ -333,13 +361,12 @@ ShowTranslateBubbleResult BraveBrowserView::ShowTranslateBubble(
     translate::TranslateErrors::Type error_type,
     bool is_user_gesture) {
 #if BUILDFLAG(ENABLE_BRAVE_TRANSLATE_GO)
-  if (translate::IsInternalTranslationEnabled(GetProfile())) {
-    return BrowserView::ShowTranslateBubble(web_contents, step, source_language,
-                                            target_language, error_type,
-                                            is_user_gesture);
-  }
-#endif  // BUILDFLAG(ENABLE_BRAVE_TRANSLATE_GO)
+  return BrowserView::ShowTranslateBubble(web_contents, step, source_language,
+                                          target_language, error_type,
+                                          is_user_gesture);
+#else   // BUILDFLAG(ENABLE_BRAVE_TRANSLATE_GO)
   return ShowTranslateBubbleResult::BROWSER_WINDOW_NOT_VALID;
+#endif  // BUILDFLAG(ENABLE_BRAVE_TRANSLATE_GO)
 }
 
 speedreader::SpeedreaderBubbleView* BraveBrowserView::ShowSpeedreaderBubble(

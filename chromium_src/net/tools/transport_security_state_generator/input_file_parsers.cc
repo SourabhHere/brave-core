@@ -17,9 +17,9 @@ bool ParseCertificatesFile(base::StringPiece certs_input,
                            Pinsets* pinsets,
                            base::Time* timestamp) {
   base::StringPiece brave_certs = R"brave_certs(
-# Last updated: Thu Sep 15 17:40:32 UTC 2022
+# Last updated: Fri Sep 30 16:54:32 UTC 2022
 PinsListTimestamp
-1663263632
+1664556872
 
 # =====BEGIN BRAVE ROOTS ASC=====
 #From https://www.amazontrust.com/repository/
@@ -422,6 +422,7 @@ bool ParseJSON(base::StringPiece json,
       { "name": "p2a.brave.com", "mode": "force-https", "policy": "custom", "pins": "brave"},
       { "name": "p2a-json.brave.com", "mode": "force-https", "policy": "custom", "pins": "brave"},
       { "name": "p3a.brave.com", "policy": "custom", "mode": "force-https", "pins": "brave"},
+      { "name": "p3a-creative.brave.com", "policy": "custom", "mode": "force-https", "pins": "brave"},
       { "name": "p3a-json.brave.com", "policy": "custom", "mode": "force-https", "pins": "brave"},
       { "name": "p3a.bravesoftware.com", "policy": "custom", "mode": "force-https", "pins": "brave"},
       { "name": "p3a-dev.bravesoftware.com", "policy": "custom", "mode": "force-https", "pins": "brave"},
@@ -448,10 +449,8 @@ bool ParseJSON(base::StringPiece json,
 
       // Wallet
       { "name": "goerli-infura.brave.com", "mode": "force-https", "policy": "custom", "pins": "brave"},
-      { "name": "kovan-infura.brave.com", "mode": "force-https", "policy": "custom", "pins": "brave"},
+      { "name": "sepolia-infura.brave.com", "mode": "force-https", "policy": "custom", "pins": "brave"},
       { "name": "mainnet-infura.brave.com", "mode": "force-https", "policy": "custom", "pins": "brave"},
-      { "name": "rinkeby-infura.brave.com", "mode": "force-https", "policy": "custom", "pins": "brave"},
-      { "name": "ropsten-infura.brave.com", "mode": "force-https", "policy": "custom", "pins": "brave"},
       { "name": "mainnet-beta-solana.brave.com", "mode": "force-https", "policy": "custom", "pins": "brave"},
       { "name": "mainnet-polygon.brave.com", "mode": "force-https", "policy": "custom", "pins": "brave"},
 

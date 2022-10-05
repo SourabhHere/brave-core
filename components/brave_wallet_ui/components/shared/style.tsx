@@ -332,6 +332,8 @@ export const SwitchAccountIcon = styled.div`
   width: 14px;
   height: 14px;
   background: url(${SwitchDown});
+  margin-left: 6px;
+  margin-right: 6px;
 `
 
 // Asset Icon containers
@@ -382,6 +384,8 @@ export const HorizontalSpace = styled.div<{ space: string }>`
 
 // Forms
 export const InputLabelText = styled.label`
+  font-family: Poppins;
+  font-style: normal;
   display: block;
   margin-bottom: 8px;
   color: ${(p) => p.theme.color.text03};

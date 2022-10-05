@@ -78,6 +78,7 @@ import org.chromium.chrome.browser.crypto_wallet.adapters.WalletCoinAdapter;
 import org.chromium.chrome.browser.crypto_wallet.fragments.ApproveTxBottomSheetDialogFragment;
 import org.chromium.chrome.browser.crypto_wallet.fragments.EditVisibleAssetsBottomSheetDialogFragment;
 import org.chromium.chrome.browser.crypto_wallet.observers.ApprovedTxObserver;
+import org.chromium.chrome.browser.crypto_wallet.util.AddressUtils;
 import org.chromium.chrome.browser.crypto_wallet.util.TokenUtils;
 import org.chromium.chrome.browser.crypto_wallet.util.Utils;
 import org.chromium.chrome.browser.crypto_wallet.util.Validations;
@@ -91,6 +92,7 @@ import org.chromium.mojo.system.MojoException;
 import org.chromium.ui.text.NoUnderlineClickableSpan;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -1133,17 +1135,18 @@ public class BuySendSwapActivity extends BraveWalletBaseActivity
         if (barcode == null) {
             return;
         }
-        final String barcodeValue = barcode.displayValue;
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (null != mCameraSourcePreview) {
-                    mCameraSourcePreview.stop();
-                }
-                RelativeLayout relativeLayout = findViewById(R.id.camera_layout);
-                relativeLayout.setVisibility(View.GONE);
-                mSendToAddrText.setText(barcodeValue);
+        String barcodeValue = barcode.displayValue;
+        if (mSelectedNetwork.coin == CoinType.ETH) {
+            barcodeValue = AddressUtils.sanitizeEthAddress(barcodeValue);
+        }
+        final String finalBarcodeValue = barcodeValue;
+        runOnUiThread(() -> {
+            if (null != mCameraSourcePreview) {
+                mCameraSourcePreview.stop();
             }
+            RelativeLayout relativeLayout = findViewById(R.id.camera_layout);
+            relativeLayout.setVisibility(View.GONE);
+            mSendToAddrText.setText(finalBarcodeValue);
         });
     }
 
@@ -1248,8 +1251,8 @@ public class BuySendSwapActivity extends BraveWalletBaseActivity
         public void onTextChanged(CharSequence s, int start, int before, int count) {
             Double fromSendValue = 0d;
             try {
-                fromSendValue = Double.parseDouble(s.toString());
-            } catch (NumberFormatException ex) {
+                fromSendValue = Utils.parseDouble(s.toString());
+            } catch (ParseException ex) {
             }
 
             String validationResult = (fromSendValue > mConvertedFromBalance)
@@ -1419,7 +1422,7 @@ public class BuySendSwapActivity extends BraveWalletBaseActivity
             mCurrentSwapToBlockchainToken = blockchainToken;
 
         BlockchainToken token = buySend ? mCurrentBlockchainToken : mCurrentSwapToBlockchainToken;
-        // Replace USDC and DAI contract addresses for Ropsten network
+        // Replace USDC and DAI contract addresses for Goerli network
         token.contractAddress = Utils.getContractAddress(
                 mSelectedNetwork.chainId, token.symbol, token.contractAddress);
         String tokensPath = BlockchainRegistryFactory.getInstance().getTokensIconsLocation();
@@ -1511,7 +1514,8 @@ public class BuySendSwapActivity extends BraveWalletBaseActivity
                     mNetworks = mActivityType != ActivityType.SEND
                             ? mWalletModel.getCryptoModel()
                                       .getNetworkModel()
-                                      .stripNoBuySwapNetworks(chainAllNetworksAllNetwork.third)
+                                      .stripNoBuySwapNetworks(
+                                              chainAllNetworksAllNetwork.third, mActivityType)
                             : chainAllNetworksAllNetwork.third;
 
                     mNetworkAdapter.setNetworks(mNetworks);

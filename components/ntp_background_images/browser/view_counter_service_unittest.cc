@@ -19,6 +19,7 @@
 #include "brave/components/ntp_background_images/browser/features.h"
 #include "brave/components/ntp_background_images/browser/ntp_background_images_data.h"
 #include "brave/components/ntp_background_images/browser/ntp_background_images_service.h"
+#include "brave/components/ntp_background_images/browser/ntp_p3a_helper.h"
 #include "brave/components/ntp_background_images/browser/ntp_sponsored_images_data.h"
 #include "brave/components/ntp_background_images/browser/url_constants.h"
 #include "brave/components/ntp_background_images/browser/view_counter_model.h"
@@ -121,8 +122,12 @@ class TestDelegate : public NTPCustomBackgroundImagesService::Delegate {
   bool IsCustomImageBackgroundEnabled() const override {
     return image_enabled_;
   }
-  base::FilePath GetCustomBackgroundImageLocalFilePath() const override {
+  base::FilePath GetCustomBackgroundImageLocalFilePath(
+      const GURL& url) const override {
     return base::FilePath();
+  }
+  GURL GetCustomBackgroundImageURL() const override {
+    return GURL(std::string(kCustomWallpaperURL) + "foo.jpg");
   }
 
   bool IsColorBackgroundEnabled() const override { return color_enabled_; }
@@ -159,10 +164,14 @@ class NTPBackgroundImagesViewCounterTest : public testing::Test {
         std::make_unique<NTPCustomBackgroundImagesService>(std::move(delegate));
     view_counter_ = std::make_unique<ViewCounterService>(
         service_.get(), custom_bi_service_.get(), &ads_service_, prefs(),
-        &local_pref_, true);
+        &local_pref_,
+        // don't need to test p3a, so passing nullptr
+        std::unique_ptr<NTPP3AHelper>(),
+        /* is_supported_locale */ true);
 #else
     view_counter_ = std::make_unique<ViewCounterService>(
-        service_.get(), nullptr, &ads_service_, prefs(), &local_pref_, true);
+        service_.get(), nullptr, &ads_service_, prefs(), &local_pref_,
+        std::unique_ptr<NTPP3AHelper>(), true);
 #endif
 
     // Set referral service is properly initialized sr component is set.
@@ -407,7 +416,8 @@ TEST_F(NTPBackgroundImagesViewCounterTest, GetCurrentWallpaperTest) {
   delegate_->image_enabled_ = true;
   background = view_counter_->GetCurrentWallpaper();
   bg_url = background->FindString(kWallpaperImageURLKey);
-  EXPECT_EQ("chrome://custom-wallpaper/background.jpg", *bg_url);
+  EXPECT_TRUE(base::StartsWith(*bg_url, kCustomWallpaperURL))
+      << "actual url " << *bg_url;
 
   // Disable custom image background.
   delegate_->image_enabled_ = false;

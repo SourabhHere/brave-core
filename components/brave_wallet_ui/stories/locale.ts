@@ -72,6 +72,7 @@ provideStrings({
 
   // Actions
   braveWalletClickToSwitch: 'Click to switch',
+  braveWalletEnterYourPassword: 'Enter your password',
 
   // BuySendSwap
   braveWalletBuy: 'Buy',
@@ -207,7 +208,7 @@ provideStrings({
   braveWalletArticleLinkWhatsARecoveryPhrase: 'What’s a recovery phrase?',
 
   // Lock Screen
-  braveWalletEnterYourPassword: 'Enter your Brave Wallet password',
+  braveWalletEnterYourBraveWalletPassword: 'Enter your Brave Wallet password',
   braveWalletLockScreenTitle: 'Enter password to unlock wallet',
   braveWalletLockScreenButton: 'Unlock',
   braveWalletLockScreenError: 'Incorrect password',
@@ -318,6 +319,9 @@ provideStrings({
   braveWalletWatchListCoingeckoId: 'Coingecko ID',
   braveWalletIconURL: 'Icon URL',
   braveWalletAddAsset: 'Add asset',
+  braveWalletAccountsExport: 'Export',
+  braveWalletAccountsDeposit: 'Deposit',
+  braveWalletAccountsRemove: 'Remove',
 
   // AmountPresets
   braveWalletPreset25: '25%',
@@ -359,9 +363,6 @@ provideStrings({
   braveWalletNetworkETH: 'Ethereum',
   braveWalletNetworkMain: 'Mainnet',
   braveWalletNetworkTest: 'Test Network',
-  braveWalletNetworkRopsten: 'Roptsten',
-  braveWalletNetworkKovan: 'Kovan',
-  braveWalletNetworkRinkeby: 'Rinkeby',
   braveWalletNetworkGoerli: 'Goerli',
   braveWalletNetworkBinance: 'Binance Smart Chain',
   braveWalletNetworkBinanceAbbr: 'BSC',
@@ -637,7 +638,7 @@ provideStrings({
   braveWalletRankStat: 'Rank',
   braveWalletVolumeStat: '24h Volume',
   braveWalletMarketCapStat: 'Market Cap',
-  braveWalletMarketDataCoinNotSupported: 'This asset is not supported by brave wallet',
+  braveWalletMarketDataCoinNotSupported: 'This asset is not supported by Brave Wallet',
 
   // Network Filter
   braveWalletNetworkFilterAll: 'All Networks',
@@ -648,6 +649,9 @@ provideStrings({
   braveWalletAssetFilterNFTs: 'NFTs',
   braveWalletAssetFilterLowToHigh: 'Balance ↑',
   braveWalletAssetFilterHighToLow: 'Balance ↓',
+
+  // Account Filter
+  braveWalletAccountFilterAllAccounts: 'All Accounts',
 
   // Transaction post-confirmation
 
@@ -663,12 +667,13 @@ provideStrings({
   braveWalletTransactionFailedNextCTA: 'New transaction',
   braveWalletTransactionFailedViewErrorCTA: 'View error',
   braveWalletTransactionFailedReceiptCTA: 'Receipt',
-  braveWalletTransactionFailedModalTitle: 'Error code',
+  braveWalletTransactionFailedModalTitle: 'Error message',
+  braveWalletTransactionFailedModalSubtitle: 'Please save the error message for future reference.',
 
   // Complete
   braveWalletTransactionCompleteSwapHeaderTitle: 'Swapped $1 to $2',
   braveWalletTransactionCompleteTitle: 'Transaction complete!',
-  braveWalletTransactionCompleteSwapDescription: '$1 has been successfully deposited into your wallet.',
+  braveWalletTransactionCompleteDescription: 'Transaction was successful. Please wait for confirmations, to avoid the risk of double-spend.',
   braveWalletTransactionCompleteReceiptCTA: 'Receipt',
 
   // Confirming
@@ -676,6 +681,11 @@ provideStrings({
   // [FIXME]: change the wording after ETH2.
   braveWalletTransactionConfirmingDescription: 'Transaction was successfully included in a block. To avoid the risk of double spending, we recommend waiting for block confirmations.',
   braveWalletTransactionConfirmingText: 'Confirming',
+
+  // Transaction intents for confirmation panels
+  braveWalletTransactionIntentDappInteraction: 'Dapp interaction',
+  braveWalletTransactionIntentSend: 'Send $1',
+  braveWalletTransactionIntentSwap: 'Swap $1 to $2',
 
   // Solana ProgramID Names
   braveWalletSolanaSystemProgram: 'System Program',
@@ -746,5 +756,9 @@ provideStrings({
   // NFTs Tab
   braveWalletNftsEmptyState: 'No NFTs found in your wallet. You can add NFTs by clicking the "+ Visible assets" button at the bottom of' +
     ' the "Portfolio" tab',
-  braveWalletNftsEmptyStateSearch: 'No NFTs matching search or filter found'
+  braveWalletNftsEmptyStateSearch: 'No NFTs matching search or filter found',
+
+  // Add asset tabs
+  braveWalletAddAssetTokenTabTitle: 'Token',
+  braveWalletAddAssetNftTabTitle: 'NFT'
 })

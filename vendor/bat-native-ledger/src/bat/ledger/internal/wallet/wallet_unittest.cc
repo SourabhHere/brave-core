@@ -15,6 +15,8 @@
 #include "bat/ledger/internal/state/state_keys.h"
 #include "net/http/http_status_code.h"
 
+// npm run test -- brave_unit_tests --filter=*WalletTest*
+
 namespace ledger {
 
 class WalletTest : public BATLedgerTest {
@@ -72,20 +74,22 @@ TEST_F(WalletTest, CreateWallet) {
   // Create a wallet when there is no current wallet information.
   GetTestLedgerClient()->SetStringState(state::kWalletBrave, "");
   mojom::Result result = CreateWalletIfNecessary();
-  EXPECT_EQ(result, mojom::Result::WALLET_CREATED);
+  EXPECT_EQ(result, mojom::Result::LEDGER_OK);
   mojom::RewardsWalletPtr wallet = ledger->wallet()->GetWallet();
   ASSERT_TRUE(wallet);
   EXPECT_TRUE(!wallet->payment_id.empty());
   EXPECT_TRUE(!wallet->recovery_seed.empty());
+  EXPECT_TRUE(wallet->geo_country.empty());
 
   // Create a wallet when there is corrupted wallet information.
   GetTestLedgerClient()->SetStringState(state::kWalletBrave, "BAD-DATA");
   result = CreateWalletIfNecessary();
-  EXPECT_EQ(result, mojom::Result::WALLET_CREATED);
+  EXPECT_EQ(result, mojom::Result::LEDGER_OK);
   wallet = ledger->wallet()->GetWallet();
   ASSERT_TRUE(wallet);
   EXPECT_TRUE(!wallet->payment_id.empty());
   EXPECT_TRUE(!wallet->recovery_seed.empty());
+  EXPECT_TRUE(wallet->geo_country.empty());
 }
 
 }  // namespace ledger

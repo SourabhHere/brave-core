@@ -22,6 +22,7 @@
 #include "base/test/scoped_feature_list.h"
 #include "base/test/task_environment.h"
 #include "base/values.h"
+#include "brave/components/brave_wallet/browser/blockchain_registry.h"
 #include "brave/components/brave_wallet/browser/brave_wallet_constants.h"
 #include "brave/components/brave_wallet/browser/brave_wallet_prefs.h"
 #include "brave/components/brave_wallet/browser/brave_wallet_utils.h"
@@ -488,6 +489,38 @@ class JsonRpcServiceUnitTest : public testing::Test {
         }));
   }
 
+  void SetENSZeroAddressInterceptor(const std::string& chain_id) {
+    GURL network_url = AddInfuraProjectId(
+        GetNetworkURL(prefs(), chain_id, mojom::CoinType::ETH));
+    ASSERT_TRUE(network_url.is_valid());
+    url_loader_factory_.SetInterceptor(base::BindLambdaForTesting(
+        [&, network_url](const network::ResourceRequest& request) {
+          base::StringPiece request_string(request.request_body->elements()
+                                               ->at(0)
+                                               .As<network::DataElementBytes>()
+                                               .AsStringPiece());
+          url_loader_factory_.ClearResponses();
+          if (request_string.find(GetFunctionHash("resolver(bytes32)")) !=
+              std::string::npos) {
+            url_loader_factory_.AddResponse(
+                network_url.spec(),
+                "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":"
+                "\"0x0000000000000000000000004976fb03c32e5b8cfe2b6ccb31c09ba78e"
+                "baba41\"}");
+          } else if (request_string.find(GetFunctionHash("addr(bytes32)")) !=
+                     std::string::npos) {
+            url_loader_factory_.AddResponse(
+                network_url.spec(),
+                "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":"
+                "\"0x0000000000000000000000000000000000000000000000000000000000"
+                "000000\"}");
+          } else {
+            url_loader_factory_.AddResponse(request.url.spec(), "",
+                                            net::HTTP_REQUEST_TIMEOUT);
+          }
+        }));
+  }
+
   void SetTokenMetadataInterceptor(
       const std::string& interface_id,
       const std::string& chain_id,
@@ -743,6 +776,34 @@ class JsonRpcServiceUnitTest : public testing::Test {
           EXPECT_EQ(error_message, expected_error_message);
           run_loop.Quit();
         }));
+    run_loop.Run();
+  }
+
+  void TestDiscoverAssetsInternal(
+      const std::string& chain_id,
+      mojom::CoinType coin,
+      const std::vector<std::string>& account_addresses,
+      const std::vector<std::string>& expected_token_contract_addresses,
+      mojom::ProviderError expected_error,
+      const std::string& expected_error_message) {
+    base::RunLoop run_loop;
+    std::vector<mojom::BlockchainTokenPtr> expected_tokens;
+    json_rpc_service_->DiscoverAssetsInternal(
+        chain_id, mojom::CoinType::ETH, account_addresses,
+        base::BindLambdaForTesting(
+            [&](const std::vector<mojom::BlockchainTokenPtr> tokens,
+                mojom::ProviderError error, const std::string& error_message) {
+              ASSERT_EQ(tokens.size(),
+                        expected_token_contract_addresses.size());
+              for (size_t i = 0; i < expected_token_contract_addresses.size();
+                   i++) {
+                EXPECT_EQ(tokens[i]->contract_address,
+                          expected_token_contract_addresses[i]);
+              }
+              EXPECT_EQ(error, expected_error);
+              EXPECT_EQ(error_message, expected_error_message);
+              run_loop.Quit();
+            }));
     run_loop.Run();
   }
 
@@ -1166,10 +1227,10 @@ TEST_F(JsonRpcServiceUnitTest, GetKnownNetworks) {
   values.push_back(NetworkInfoToValue(chain1));
   UpdateCustomNetworks(prefs(), &values);
 
-  EXPECT_CALL(callback,
-              Run(ElementsAreArray({"0x1", "0x89", "0x38", "0xa4ec", "0xa86a",
-                                    "0xfa", "0xa", "0x4e454152", "0x4", "0x3",
-                                    "0x5", "0x2a", "0x539"})));
+  EXPECT_CALL(
+      callback,
+      Run(ElementsAreArray({"0x1", "0x89", "0x38", "0xa4ec", "0xa86a", "0xfa",
+                            "0xa", "0x4e454152", "0x5", "0xaa36a7", "0x539"})));
   json_rpc_service_->GetKnownNetworks(mojom::CoinType::ETH, callback.Get());
   testing::Mock::VerifyAndClearExpectations(&callback);
 }
@@ -1193,6 +1254,11 @@ TEST_F(JsonRpcServiceUnitTest, GetHiddenNetworks) {
 }
 
 TEST_F(JsonRpcServiceUnitTest, EnsGetContentHash) {
+#if !BUILDFLAG(IS_ANDROID)
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitAndDisableFeature(features::kBraveWalletENSL2Feature);
+#endif
+
   {
     base::MockCallback<JsonRpcService::EnsGetContentHashCallback> callback;
     EXPECT_CALL(
@@ -1241,12 +1307,34 @@ TEST_F(JsonRpcServiceUnitTest, EnsGetContentHash) {
 }
 
 TEST_F(JsonRpcServiceUnitTest, EnsGetEthAddr) {
+#if !BUILDFLAG(IS_ANDROID)
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitAndDisableFeature(features::kBraveWalletENSL2Feature);
+#endif
+
   SetUDENSInterceptor(mojom::kMainnetChainId);
   EXPECT_TRUE(SetNetwork(mojom::kMainnetChainId, mojom::CoinType::ETH));
 
   base::MockCallback<JsonRpcService::EnsGetEthAddrCallback> callback;
   EXPECT_CALL(callback, Run("0x983110309620D911731Ac0932219af06091b6744", false,
                             mojom::ProviderError::kSuccess, ""));
+  json_rpc_service_->EnsGetEthAddr("brantly-test.eth", nullptr, callback.Get());
+  base::RunLoop().RunUntilIdle();
+}
+
+TEST_F(JsonRpcServiceUnitTest, EnsGetEthAddr_ZeroAddress) {
+#if !BUILDFLAG(IS_ANDROID)
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitAndDisableFeature(features::kBraveWalletENSL2Feature);
+#endif
+
+  SetENSZeroAddressInterceptor(mojom::kMainnetChainId);
+  EXPECT_TRUE(SetNetwork(mojom::kMainnetChainId, mojom::CoinType::ETH));
+
+  base::MockCallback<JsonRpcService::EnsGetEthAddrCallback> callback;
+  EXPECT_CALL(callback,
+              Run("", false, mojom::ProviderError::kInvalidParams,
+                  l10n_util::GetStringUTF8(IDS_WALLET_INVALID_PARAMETERS)));
   json_rpc_service_->EnsGetEthAddr("brantly-test.eth", nullptr, callback.Get());
   base::RunLoop().RunUntilIdle();
 }
@@ -1690,8 +1778,8 @@ TEST_F(JsonRpcServiceUnitTest, AddEthereumChainForOriginError) {
 TEST_F(JsonRpcServiceUnitTest, StartWithNetwork) {
   ValidateStartWithNetwork(std::string(), std::string());
   ValidateStartWithNetwork("SomeBadChainId", std::string());
-  ValidateStartWithNetwork(brave_wallet::mojom::kRopstenChainId,
-                           brave_wallet::mojom::kRopstenChainId);
+  ValidateStartWithNetwork(brave_wallet::mojom::kGoerliChainId,
+                           brave_wallet::mojom::kGoerliChainId);
 }
 
 TEST_F(JsonRpcServiceUnitTest, Request) {
@@ -1938,7 +2026,7 @@ TEST_F(JsonRpcServiceUnitTest, GetERC20TokenBalance) {
       "}");
 
   json_rpc_service_->GetERC20TokenBalance(
-      "0x0d8775f648430679a709e98d2b0cb6250d2887ef",
+      "0x0D8775F648430679A709E98d2b0Cb6250d2887EF",
       "0x4e02f254184E904300e0775E4b8eeCB1", mojom::kMainnetChainId,
       base::BindOnce(&OnStringResponse, &callback_called,
                      mojom::ProviderError::kSuccess, "",
@@ -1949,7 +2037,7 @@ TEST_F(JsonRpcServiceUnitTest, GetERC20TokenBalance) {
   callback_called = false;
   SetHTTPRequestTimeoutInterceptor();
   json_rpc_service_->GetERC20TokenBalance(
-      "0x0d8775f648430679a709e98d2b0cb6250d2887ef",
+      "0x0D8775F648430679A709E98d2b0Cb6250d2887EF",
       "0x4e02f254184E904300e0775E4b8eeCB1", mojom::kMainnetChainId,
       base::BindOnce(&OnStringResponse, &callback_called,
                      mojom::ProviderError::kInternalError,
@@ -3198,7 +3286,6 @@ TEST_F(JsonRpcServiceUnitTest, GetSupportsInterface) {
   EXPECT_TRUE(callback_called);
 
   // Invalid result, should be in hex form
-  // todo can remove this one if we have checks for parsing errors
   callback_called = false;
   SetInterceptor(GetNetwork(mojom::kMainnetChainId, mojom::CoinType::ETH),
                  "eth_call", "",
@@ -3247,6 +3334,204 @@ TEST_F(JsonRpcServiceUnitTest, GetSupportsInterface) {
                      "Request exceeds defined limit", false));
   base::RunLoop().RunUntilIdle();
   EXPECT_TRUE(callback_called);
+}
+
+TEST_F(JsonRpcServiceUnitTest, DiscoverAssets) {
+  auto* blockchain_registry = BlockchainRegistry::GetInstance();
+  TokenListMap token_list_map;
+
+  std::string response;
+
+  // Unsupported chainId is not supported
+  TestDiscoverAssetsInternal(
+      mojom::kPolygonMainnetChainId, mojom::CoinType::ETH,
+      {"0xB4B2802129071b2B9eBb8cBB01EA1E4D14B34961"}, {},
+      mojom::ProviderError::kMethodNotSupported,
+      l10n_util::GetStringUTF8(IDS_WALLET_METHOD_NOT_SUPPORTED_ERROR));
+
+  // Empty address is invalid
+  TestDiscoverAssetsInternal(
+      mojom::kMainnetChainId, mojom::CoinType::ETH, {}, {},
+      mojom::ProviderError::kInvalidParams,
+      l10n_util::GetStringUTF8(IDS_WALLET_INVALID_PARAMETERS));
+
+  // Invalid address is invalid
+  TestDiscoverAssetsInternal(
+      mojom::kMainnetChainId, mojom::CoinType::ETH, {"0xinvalid"}, {},
+      mojom::ProviderError::kInvalidParams,
+      l10n_util::GetStringUTF8(IDS_WALLET_INVALID_PARAMETERS));
+
+  // Invalid RPC response json response triggers parsing error
+  auto expected_network =
+      GetNetwork(mojom::kMainnetChainId, mojom::CoinType::ETH);
+  std::string token_list_json = R"({
+     "0x0d8775f648430679a709e98d2b0cb6250d2887ef": {
+       "name": "Basic Attention Token",
+       "logo": "bat.svg",
+       "erc20": true,
+       "symbol": "BAT",
+       "decimals": 18
+     }
+    })";
+  ASSERT_TRUE(
+      ParseTokenList(token_list_json, &token_list_map, mojom::CoinType::ETH));
+  blockchain_registry->UpdateTokenList(std::move(token_list_map));
+  SetInterceptor(expected_network, "eth_getLogs", "",
+                 "invalid eth_getLogs response");
+  TestDiscoverAssetsInternal(
+      mojom::kMainnetChainId, mojom::CoinType::ETH,
+      {"0xB4B2802129071b2B9eBb8cBB01EA1E4D14B34961"}, {},
+      mojom::ProviderError::kParsingError,
+      l10n_util::GetStringUTF8(IDS_WALLET_PARSING_ERROR));
+
+  // Invalid limit exceeded response triggers parsing error
+  SetLimitExceededJsonErrorResponse();
+  TestDiscoverAssetsInternal(
+      mojom::kMainnetChainId, mojom::CoinType::ETH,
+      {"0xB4B2802129071b2B9eBb8cBB01EA1E4D14B34961"}, {},
+      mojom::ProviderError::kParsingError,
+      l10n_util::GetStringUTF8(IDS_WALLET_PARSING_ERROR));
+
+  // Invalid logs (missing addresses) triggers parsing error
+  response = R"({
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": [
+      {
+        "blockHash": "0xaefb023131aa58e533c09c0eae29c280460d3976f5235a1ff53159ef37f73073",
+        "blockNumber": "0xa72603",
+        "data": "0x000000000000000000000000000000000000000000000006e83695ab1f893c00",
+        "logIndex": "0x14",
+        "removed": false,
+        "topics": [
+          "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+          "0x000000000000000000000000897bb1e945f5aa7ed7f81646e7991eaba63aa4b0",
+          "0x000000000000000000000000b4b2802129071b2b9ebb8cbb01ea1e4d14b34961"
+        ],
+        "transactionHash": "0x5c655301d386f45af116a4aef418491ee27b71ac30be70a593ccffa3754797d4",
+        "transactionIndex": "0xa"
+      },
+    ]
+  })";
+  SetInterceptor(expected_network, "eth_getLogs", "", response);
+  TestDiscoverAssetsInternal(
+      mojom::kMainnetChainId, mojom::CoinType::ETH,
+      {"0xB4B2802129071b2B9eBb8cBB01EA1E4D14B34961"}, {},
+      mojom::ProviderError::kParsingError,
+      l10n_util::GetStringUTF8(IDS_WALLET_PARSING_ERROR));
+
+  // Valid registry token DAI is discovered and added.
+  // Valid registry token WETH is discovered and added (tests insensitivity to
+  // lower case addresses in provider logs response).
+  // Valid BAT is not added because it is already a user asset.
+  // Invalid LilNoun is not added because it is an ERC721.
+  token_list_json = R"(
+     {
+      "0x0d8775f648430679a709e98d2b0cb6250d2887ef": {
+        "name": "Basic Attention Token",
+        "logo": "bat.svg",
+        "erc20": true,
+        "symbol": "BAT",
+        "decimals": 18
+      },
+      "0x6B175474E89094C44Da98b954EedeAC495271d0F": {
+        "name": "Dai Stablecoin",
+        "logo": "dai.svg",
+        "erc20": true,
+        "symbol": "DAI",
+        "decimals": 18
+      },
+      "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2": {
+        "name": "Wrapped Eth",
+        "logo": "weth.svg",
+        "erc20": true,
+        "symbol": "WETH",
+        "decimals": 18,
+        "chainId": "0x1"
+      },
+      "0x4b10701Bfd7BFEdc47d50562b76b436fbB5BdB3B": {
+        "name": "Lil Nouns",
+        "logo": "lilnouns.svg",
+        "erc20": false,
+        "erc721": true,
+        "symbol": "LilNouns",
+        "chainId": "0x1"
+      }
+     })";
+  ASSERT_TRUE(
+      ParseTokenList(token_list_json, &token_list_map, mojom::CoinType::ETH));
+  blockchain_registry->UpdateTokenList(std::move(token_list_map));
+
+  // Note: the matching transfer log for WETH uses an all lowercase address
+  // while the token registry uses checksum address (contains uppercase)
+  response = R"({
+    "jsonrpc":"2.0",
+    "id":1,
+    "result":[
+      {
+        "address":"0x6B175474E89094C44Da98b954EedeAC495271d0F",
+        "blockHash":"0x2961ceb6c16bab72a55f79e394a35f2bf1c62b30446e3537280f7c22c3115e6e",
+        "blockNumber":"0xd6464c",
+        "data":"0x00000000000000000000000000000000000000000000000555aff1f0fae8c000",
+        "logIndex":"0x159",
+        "removed":false,
+        "topics":[
+          "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+          "0x000000000000000000000000503828976d22510aad0201ac7ec88293211d23da",
+          "0x000000000000000000000000b4b2802129071b2b9ebb8cbb01ea1e4d14b34961"
+        ],
+        "transactionHash":"0x2e652b70966c6a05f4b3e68f20d6540b7a5ab712385464a7ccf62774d39b7066",
+        "transactionIndex":"0x9f"
+      },
+      {
+        "address":"0x4b10701Bfd7BFEdc47d50562b76b436fbB5BdB3B",
+        "blockHash":"0x2961ceb6c16bab72a55f79e394a35f2bf1c62b30446e3537280f7c22c3115e6e",
+        "blockNumber":"0xd6464c",
+        "data":"0x00000000000000000000000000000000000000000000000555aff1f0fae8c000",
+        "logIndex":"0x159",
+        "removed":false,
+        "topics":[
+          "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+          "0x000000000000000000000000503828976d22510aad0201ac7ec88293211d23da",
+          "0x000000000000000000000000b4b2802129071b2b9ebb8cbb01ea1e4d14b34961"
+        ],
+        "transactionHash":"0x2e652b70966c6a05f4b3e68f20d6540b7a5ab712385464a7ccf62774d39b7066",
+        "transactionIndex":"0x9f"
+      },
+      {
+        "address":"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+        "blockHash":"0x2961ceb6c16bab72a55f79e394a35f2bf1c62b30446e3537280f7c22c3115e6e",
+        "blockNumber":"0xd6464c",
+        "data":"0x00000000000000000000000000000000000000000000000555aff1f0fae8c000",
+        "logIndex":"0x159",
+        "removed":false,
+        "topics":[
+          "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+          "0x000000000000000000000000503828976d22510aad0201ac7ec88293211d23da",
+          "0x000000000000000000000000b4b2802129071b2b9ebb8cbb01ea1e4d14b34961"
+        ],
+        "transactionHash":"0x2e652b70966c6a05f4b3e68f20d6540b7a5ab712385464a7ccf62774d39b7066",
+        "transactionIndex":"0x9f"
+      }
+    ]
+  })";
+  SetInterceptor(expected_network, "eth_getLogs", "", response);
+  TestDiscoverAssetsInternal(mojom::kMainnetChainId, mojom::CoinType::ETH,
+                             {"0xB4B2802129071b2B9eBb8cBB01EA1E4D14B34961"},
+                             {"0x6B175474E89094C44Da98b954EedeAC495271d0F",
+                              "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"},
+                             mojom::ProviderError::kSuccess, "");
+
+  // Discover assets should not run unless using Infura proxy
+  std::vector<base::Value::Dict> values;
+  mojom::NetworkInfo chain = GetTestNetworkInfo1("0x1");
+  values.push_back(brave_wallet::NetworkInfoToValue(chain));
+  UpdateCustomNetworks(prefs(), &values);
+  TestDiscoverAssetsInternal(
+      mojom::kMainnetChainId, mojom::CoinType::ETH,
+      {"0xB4B2802129071b2B9eBb8cBB01EA1E4D14B34961"}, {},
+      mojom::ProviderError::kMethodNotSupported,
+      l10n_util::GetStringUTF8(IDS_WALLET_METHOD_NOT_SUPPORTED_ERROR));
 }
 
 TEST_F(JsonRpcServiceUnitTest, Reset) {
@@ -3424,6 +3709,75 @@ TEST_F(JsonRpcServiceUnitTest, GetSolanaLatestBlockhash) {
   TestGetSolanaLatestBlockhash(
       "", 0, mojom::SolanaProviderError::kInternalError,
       l10n_util::GetStringUTF8(IDS_WALLET_INTERNAL_ERROR));
+}
+
+TEST_F(JsonRpcServiceUnitTest, MigrateDeprecatedEthereumTestnets) {
+  // If Ropsten (0x3), Rinkeby (0x4), or Kovan (0x2a) is set as selected network
+  // it should be switched to mainnet after migration
+  const std::vector<std::string> deprecated_chain_ids = {"0x3", "0x4", "0x2a"};
+  for (const std::string& deprecated_chain_id : deprecated_chain_ids) {
+    // Set up test by setting migrated pref to false
+    prefs()->SetBoolean(kBraveWalletDeprecateEthereumTestNetworksMigrated,
+                        false);
+    ASSERT_FALSE(
+        prefs()->GetBoolean(kBraveWalletDeprecateEthereumTestNetworksMigrated));
+
+    // Set selected network to deprecated network and validate
+    DictionaryPrefUpdate update(prefs(), kBraveWalletSelectedNetworks);
+    auto& selected_networks_pref = update.Get()->GetDict();
+    selected_networks_pref.Set(kEthereumPrefKey, deprecated_chain_id);
+    const base::Value* selected_networks =
+        prefs()->GetDictionary(kBraveWalletSelectedNetworks);
+    ASSERT_TRUE(selected_networks);
+    const std::string* selected_eth_network =
+        selected_networks->FindStringKey(kEthereumPrefKey);
+    ASSERT_TRUE(selected_eth_network);
+    EXPECT_EQ(*selected_eth_network, deprecated_chain_id);
+
+    // Run deprecation migration and validate network is set to mainnet and
+    // migrated pref flag is set to true
+    JsonRpcService::MigrateDeprecatedEthereumTestnets(prefs());
+    const base::Value* new_selected_networks =
+        prefs()->GetDictionary(kBraveWalletSelectedNetworks);
+    ASSERT_TRUE(new_selected_networks);
+    selected_eth_network =
+        new_selected_networks->FindStringKey(kEthereumPrefKey);
+    EXPECT_EQ(*selected_eth_network, mojom::kMainnetChainId);
+    EXPECT_TRUE(
+        prefs()->GetBoolean(kBraveWalletDeprecateEthereumTestNetworksMigrated));
+    EXPECT_EQ(GetCurrentChainId(prefs(), mojom::CoinType::ETH),
+              mojom::kMainnetChainId);
+  }
+
+  // Nothing happens if non deprecated network is selected
+  prefs()->SetBoolean(kBraveWalletDeprecateEthereumTestNetworksMigrated, false);
+  ASSERT_FALSE(
+      prefs()->GetBoolean(kBraveWalletDeprecateEthereumTestNetworksMigrated));
+
+  // Set selected network to deprecated network and validate
+  DictionaryPrefUpdate update(prefs(), kBraveWalletSelectedNetworks);
+  auto& selected_networks_pref = update.Get()->GetDict();
+  selected_networks_pref.Set(kEthereumPrefKey, mojom::kSepoliaChainId);
+  const base::Value* selected_networks =
+      prefs()->GetDictionary(kBraveWalletSelectedNetworks);
+  ASSERT_TRUE(selected_networks);
+  const std::string* selected_eth_network =
+      selected_networks->FindStringKey(kEthereumPrefKey);
+  ASSERT_TRUE(selected_eth_network);
+  EXPECT_EQ(*selected_eth_network, mojom::kSepoliaChainId);
+
+  // Run migration and validate network is unchanged and migrated
+  // pref flag is set to true
+  JsonRpcService::MigrateDeprecatedEthereumTestnets(prefs());
+  const base::Value* new_selected_networks =
+      prefs()->GetDictionary(kBraveWalletSelectedNetworks);
+  ASSERT_TRUE(new_selected_networks);
+  selected_eth_network = new_selected_networks->FindStringKey(kEthereumPrefKey);
+  EXPECT_EQ(*selected_eth_network, mojom::kSepoliaChainId);
+  EXPECT_TRUE(
+      prefs()->GetBoolean(kBraveWalletDeprecateEthereumTestNetworksMigrated));
+  EXPECT_EQ(GetCurrentChainId(prefs(), mojom::CoinType::ETH),
+            mojom::kSepoliaChainId);
 }
 
 TEST_F(JsonRpcServiceUnitTest, MigrateMultichainNetworks) {
@@ -4426,8 +4780,10 @@ class ENSL2JsonRpcServiceUnitTest : public JsonRpcServiceUnitTest {
   std::unique_ptr<OffchainGatewayHandler> offchain_gateway_handler_;
 
  private:
+#if BUILDFLAG(IS_ANDROID)
   base::test::ScopedFeatureList feature_list_{
       features::kBraveWalletENSL2Feature};
+#endif
 };
 
 TEST_F(ENSL2JsonRpcServiceUnitTest, GetEthAddr) {
@@ -4607,6 +4963,10 @@ TEST_F(ENSL2JsonRpcServiceUnitTest, GetEthAddr_Consent) {
 }
 
 TEST_F(ENSL2JsonRpcServiceUnitTest, GetContentHash) {
+  decentralized_dns::SetEnsOffchainResolveMethod(
+      local_state_prefs(),
+      decentralized_dns::EnsOffchainResolveMethod::kEnabled);
+
   base::MockCallback<JsonRpcService::EnsGetContentHashCallback> callback;
   EXPECT_CALL(callback, Run(offchain_contenthash(), false,
                             mojom::ProviderError::kSuccess, ""));
@@ -4615,6 +4975,10 @@ TEST_F(ENSL2JsonRpcServiceUnitTest, GetContentHash) {
 }
 
 TEST_F(ENSL2JsonRpcServiceUnitTest, GetContentHash_NoResolver) {
+  decentralized_dns::SetEnsOffchainResolveMethod(
+      local_state_prefs(),
+      decentralized_dns::EnsOffchainResolveMethod::kEnabled);
+
   base::MockCallback<JsonRpcService::EnsGetContentHashCallback> callback;
   EXPECT_CALL(
       callback,
@@ -4625,6 +4989,10 @@ TEST_F(ENSL2JsonRpcServiceUnitTest, GetContentHash_NoResolver) {
 }
 
 TEST_F(ENSL2JsonRpcServiceUnitTest, GetContentHash_NoEnsip10Support) {
+  decentralized_dns::SetEnsOffchainResolveMethod(
+      local_state_prefs(),
+      decentralized_dns::EnsOffchainResolveMethod::kEnabled);
+
   // TODO(apaymyshev): ENS offchain lookup should work without ensip10
   // support.
 
@@ -4640,6 +5008,10 @@ TEST_F(ENSL2JsonRpcServiceUnitTest, GetContentHash_NoEnsip10Support) {
 }
 
 TEST_F(ENSL2JsonRpcServiceUnitTest, GetContentHash_Gateway500Error) {
+  decentralized_dns::SetEnsOffchainResolveMethod(
+      local_state_prefs(),
+      decentralized_dns::EnsOffchainResolveMethod::kEnabled);
+
   // Gateway request fails.
   offchain_gateway_handler_->SetRespondWith500();
 
@@ -4653,6 +5025,10 @@ TEST_F(ENSL2JsonRpcServiceUnitTest, GetContentHash_Gateway500Error) {
 }
 
 TEST_F(ENSL2JsonRpcServiceUnitTest, GetContentHash_GatewayNoRecord) {
+  decentralized_dns::SetEnsOffchainResolveMethod(
+      local_state_prefs(),
+      decentralized_dns::EnsOffchainResolveMethod::kEnabled);
+
   // No data record in gateway.
   offchain_gateway_handler_->SetRespondWithNoRecord();
 
@@ -4670,10 +5046,10 @@ TEST_F(ENSL2JsonRpcServiceUnitTest, GetContentHash_Consent) {
       decentralized_dns::EnsOffchainResolveMethod::kAsk,
       decentralized_dns::GetEnsOffchainResolveMethod(local_state_prefs()));
 
-  // Ok by default.
+  // Ask by default.
   {
     base::MockCallback<JsonRpcService::EnsGetContentHashCallback> callback;
-    EXPECT_CALL(callback, Run(offchain_contenthash(), false,
+    EXPECT_CALL(callback, Run(std::vector<uint8_t>(), true,
                               mojom::ProviderError::kSuccess, ""));
     json_rpc_service_->EnsGetContentHash(ens_host(), callback.Get());
     base::RunLoop().RunUntilIdle();

@@ -14,6 +14,7 @@ export const defaultState: NewTab.State = {
   textDirection: loadTimeData.getString('textdirection'),
   featureFlagBraveNTPSponsoredImagesWallpaper: loadTimeData.getBoolean('featureFlagBraveNTPSponsoredImagesWallpaper'),
   featureFlagBraveNewsEnabled: loadTimeData.getBoolean('featureFlagBraveNewsEnabled'),
+  featureFlagBraveNewsV2Enabled: loadTimeData.getBoolean('featureFlagBraveNewsV2Enabled'),
   featureFlagBraveNewsPromptEnabled: loadTimeData.getBoolean('featureFlagBraveNewsPromptEnabled'),
   featureFlagBraveNewsSubscribeButtonEnabled: loadTimeData.getBoolean('featureFlagBraveNewsSubscribeButtonEnabled'),
   featureCustomBackgroundEnabled: loadTimeData.getBoolean('featureCustomBackgroundEnabled'),
@@ -144,7 +145,8 @@ export const defaultState: NewTab.State = {
   },
   ftxState: {
     optedIntoMarkets: false
-  }
+  },
+  customImageBackgrounds: []
 }
 
 if (chrome.extension.inIncognitoContext) {

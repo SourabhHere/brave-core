@@ -392,8 +392,14 @@ Config.prototype.buildArgs = function () {
     args.cc_wrapper = path.join(this.nativeRedirectCCDir, 'redirect_cc')
   }
 
-  if (this.targetArch === 'x86' && process.platform === 'linux') {
-    // Minimal symbols for target Linux x86, because ELF32 cannot be > 4GiB
+  if (this.targetArch === 'x86' &&
+      (process.platform === 'linux' || this.getTargetOS() === 'win')) {
+    // Minimal symbols to work around size restrictions:
+    // On Linux x86, ELF32 cannot be > 4GiB.
+    // For x86 Windows, chrome.dll.pdb sometimes becomes > 4 GiB and
+    // llvm-pdbutil on that file errors out with "The data is in an unexpected
+    // format. Too many directory blocks". Associated llvm issue:
+    // https://github.com/llvm/llvm-project/issues/54445
     args.symbol_level = 1
   }
 
@@ -406,6 +412,24 @@ Config.prototype.buildArgs = function () {
   if (this.getTargetOS() === 'linux' && this.targetArch === 'x64') {
     // Include vaapi support
     args.use_vaapi = true
+  }
+
+  // Enable Page Graph only in desktop builds.
+  // Page Graph gn args should always be set explicitly, because they are parsed
+  // from out/<dir>/args.gn by Python scripts during the build. We do this to
+  // handle gn args in upstream build scripts without introducing git conflict.
+  if (this.targetOS !== 'android' && this.targetOS !== 'ios') {
+    args.enable_brave_page_graph = true
+  } else {
+    args.enable_brave_page_graph = false
+  }
+  // Enable Page Graph WebAPI probes only in dev/nightly builds.
+  if (args.enable_brave_page_graph &&
+      (!this.isBraveReleaseBuild() || this.channel === 'dev' ||
+       this.channel === 'nightly')) {
+    args.enable_brave_page_graph_webapi_probes = true
+  } else {
+    args.enable_brave_page_graph_webapi_probes = false
   }
 
   if (this.targetOS) {

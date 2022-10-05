@@ -19,7 +19,8 @@ import {
   CryptoDotComWidget as CryptoDotCom,
   EditTopSite,
   SearchPromotion,
-  EditCards
+  EditCards,
+  OverrideReadabilityColor
 } from '../../components/default'
 import { FTXWidget as FTX } from '../../widgets/ftx/components'
 import * as Page from '../../components/default/page'
@@ -40,6 +41,7 @@ import {
   fetchCryptoDotComSupportedPairs
 } from '../../api/cryptoDotCom'
 import { generateQRData } from '../../binance-utils'
+import isReadableOnBackground from '../../helpers/colorUtil'
 
 // Types
 import { GeminiAssetAddress } from '../../actions/gemini_actions'
@@ -73,7 +75,9 @@ interface Props {
   saveShowFTX: (value: boolean) => void
   saveBrandedWallpaperOptIn: (value: boolean) => void
   saveSetAllStackWidgets: (value: boolean) => void
-  useCustomBackgroundImage: () => void
+  chooseNewCustomBackgroundImage: () => void
+  setCustomImageBackground: (selectedBackground: string) => void
+  removeCustomImageBackground: (background: string) => void
   setBraveBackground: (selectedBackground: string) => void
   setColorBackground: (color: string, useRandomColor: boolean) => void
 }
@@ -217,6 +221,10 @@ class NewTabPage extends React.Component<Props, State> {
     }
   }
 
+  shouldOverrideReadabilityColor (newTabData: NewTab.State) {
+    return !newTabData.brandedWallpaper && newTabData.backgroundWallpaper?.type === 'color' && !isReadableOnBackground(newTabData.backgroundWallpaper)
+  }
+
   handleResize () {
     this.setState({
       forceToHideWidget: GetShouldForceToHideWidget(this.props, this.state.showSearchPromotion)
@@ -253,7 +261,9 @@ class NewTabPage extends React.Component<Props, State> {
 
     if (openSettings) {
       let activeSettingsTab: SettingsTabType | null = null
-      const activeSettingsTabRaw = this.props.newTabData.forceSettingsTab || null
+      const activeSettingsTabRaw = typeof openSettings === 'string'
+        ? openSettings
+        : this.props.newTabData.forceSettingsTab || null
       if (activeSettingsTabRaw) {
         const allSettingsTabTypes = [...Object.keys(SettingsTabType)]
         if (allSettingsTabTypes.includes(activeSettingsTabRaw)) {
@@ -1166,6 +1176,7 @@ class NewTabPage extends React.Component<Props, State> {
         imageHasLoaded={this.state.backgroundHasLoaded}
         colorForBackground={colorForBackground}
         data-show-news-prompt={((this.state.backgroundHasLoaded || colorForBackground) && this.state.isPromptingBraveToday) ? true : undefined}>
+        <OverrideReadabilityColor override={ this.shouldOverrideReadabilityColor(this.props.newTabData) } />
         <Page.Page
             hasImage={hasImage}
             imageSrc={this.imageSource}
@@ -1300,7 +1311,9 @@ class NewTabPage extends React.Component<Props, State> {
           toggleShowTopSites={this.toggleShowTopSites}
           setMostVisitedSettings={this.setMostVisitedSettings}
           toggleBrandedWallpaperOptIn={this.toggleShowBrandedWallpaper}
-          useCustomBackgroundImage={this.props.useCustomBackgroundImage}
+          chooseNewCustomImageBackground={this.props.chooseNewCustomBackgroundImage}
+          setCustomImageBackground={this.props.setCustomImageBackground}
+          removeCustomImageBackground={this.props.removeCustomImageBackground}
           setBraveBackground={this.props.setBraveBackground}
           setColorBackground={this.props.setColorBackground}
           showBackgroundImage={newTabData.showBackgroundImage}

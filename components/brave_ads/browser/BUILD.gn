@@ -8,6 +8,8 @@ source_set("browser") {
     "ads_service.cc",
     "ads_service.h",
     "ads_service_observer.h",
+    "ads_status_header_throttle.cc",
+    "ads_status_header_throttle.h",
     "ads_storage_cleanup.cc",
     "ads_storage_cleanup.h",
     "component_updater/component_info.cc",
@@ -30,12 +32,14 @@ source_set("browser") {
     "//brave/components/brave_component_updater/browser",
     "//brave/components/l10n/browser",
     "//brave/components/l10n/common",
+    "//brave/components/p3a_utils",
     "//brave/components/time_period_storage",
     "//components/keyed_service/core",
     "//components/pref_registry",
     "//components/prefs",
     "//components/sessions",
     "//sql",
+    "//third_party/blink/public/common",
     "//url",
   ]
 

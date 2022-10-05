@@ -193,13 +193,7 @@ class RewardsDOMHandler
 
   void GetPaymentId(const base::Value::List& args);
 
-  void OnWalletCreatedForPaymentId(ledger::mojom::Result result);
-
   void OnGetPaymentId(ledger::mojom::RewardsWalletPtr wallet);
-
-  void GetWalletPassphrase(const base::Value::List& args);
-
-  void OnGetRewardsWalletPassphrase(const std::string& pass);
 
   void GetOnboardingStatus(const base::Value::List& args);
   void EnableRewards(const base::Value::List& args);
@@ -257,8 +251,7 @@ class RewardsDOMHandler
                           const ledger::mojom::Result result,
                           const std::string& wallet_type) override;
 
-  void OnAdsEnabled(brave_rewards::RewardsService* rewards_service,
-                    bool ads_enabled) override;
+  void OnRewardsWalletUpdated() override;
 
   void OnUnblindedTokensReady(
       brave_rewards::RewardsService* rewards_service) override;
@@ -510,10 +503,6 @@ void RewardsDOMHandler::RegisterMessages() {
   web_ui()->RegisterMessageCallback(
       "brave_rewards.getPaymentId",
       base::BindRepeating(&RewardsDOMHandler::GetPaymentId,
-                          base::Unretained(this)));
-  web_ui()->RegisterMessageCallback(
-      "brave_rewards.getWalletPassphrase",
-      base::BindRepeating(&RewardsDOMHandler::GetWalletPassphrase,
                           base::Unretained(this)));
   web_ui()->RegisterMessageCallback(
       "brave_rewards.getOnboardingStatus",
@@ -772,7 +761,7 @@ void RewardsDOMHandler::OnFetchPromotions(
 void RewardsDOMHandler::FetchPromotions(const base::Value::List& args) {
   if (rewards_service_) {
     AllowJavascript();
-    rewards_service_->FetchPromotions();
+    rewards_service_->FetchPromotions(base::DoNothing());
   }
 }
 
@@ -1430,9 +1419,8 @@ void RewardsDOMHandler::SaveAdsSetting(const base::Value::List& args) {
   const std::string value = args[1].GetString();
 
   if (key == "adsEnabled") {
-    const auto is_enabled =
-        value == "true" && ads_service_->IsSupportedLocale();
-    rewards_service_->SetAdsEnabled(is_enabled);
+    ads_service_->SetEnabled(value == "true" &&
+                             ads_service_->IsSupportedLocale());
   } else if (key == "adsPerHour") {
     int64_t int64_value;
     if (!base::StringToInt64(value, &int64_value)) {
@@ -1779,9 +1767,7 @@ void RewardsDOMHandler::OnDisconnectWallet(
                          base::Value(std::move(data)));
 }
 
-void RewardsDOMHandler::OnAdsEnabled(
-    brave_rewards::RewardsService* rewards_service,
-    bool ads_enabled) {
+void RewardsDOMHandler::OnRewardsWalletUpdated() {
   if (!IsJavascriptAllowed()) {
     return;
   }
@@ -1993,15 +1979,6 @@ void RewardsDOMHandler::GetPaymentId(const base::Value::List& args) {
 
   AllowJavascript();
 
-  // Ensure that a wallet has been created for the user before attempting
-  // to retrieve a payment ID.
-  rewards_service_->CreateRewardsWallet(
-      base::BindOnce(&RewardsDOMHandler::OnWalletCreatedForPaymentId,
-                     weak_factory_.GetWeakPtr()));
-}
-
-void RewardsDOMHandler::OnWalletCreatedForPaymentId(
-    ledger::mojom::Result result) {
   rewards_service_->GetRewardsWallet(base::BindOnce(
       &RewardsDOMHandler::OnGetPaymentId, weak_factory_.GetWeakPtr()));
 }
@@ -2017,27 +1994,6 @@ void RewardsDOMHandler::OnGetPaymentId(ledger::mojom::RewardsWalletPtr wallet) {
   }
 
   CallJavascriptFunction("brave_rewards.paymentId", base::Value(payment_id));
-}
-
-void RewardsDOMHandler::GetWalletPassphrase(const base::Value::List& args) {
-  if (!rewards_service_) {
-    return;
-  }
-
-  AllowJavascript();
-  rewards_service_->GetRewardsWalletPassphrase(
-      base::BindOnce(&RewardsDOMHandler::OnGetRewardsWalletPassphrase,
-                     weak_factory_.GetWeakPtr()));
-}
-
-void RewardsDOMHandler::OnGetRewardsWalletPassphrase(
-    const std::string& passphrase) {
-  if (!IsJavascriptAllowed()) {
-    return;
-  }
-
-  CallJavascriptFunction("brave_rewards.walletPassphrase",
-                         base::Value(passphrase));
 }
 
 void RewardsDOMHandler::GetOnboardingStatus(const base::Value::List& args) {

@@ -74,6 +74,8 @@ constexpr webui::LocalizedString kLocalizedStrings[] = {
     {"braveWalletNonAsciiCharactersInMessageWarning",
      IDS_BRAVE_WALLET_NON_ASCII_CHARACTERS_IN_MESSAGE_WARNING},
     {"braveWalletEnterYourPassword", IDS_BRAVE_WALLET_ENTER_YOUR_PASSWORD},
+    {"braveWalletEnterYourBraveWalletPassword",
+     IDS_BRAVE_WALLET_ENTER_YOUR_BRAVE_WALLET_PASSWORD},
     {"braveWalletClickToSwitch", IDS_BRAVE_WALLET_CLICK_TO_SWITCH},
     {"braveWalletUnlockNeededToCreateAccount",
      IDS_BRAVE_WALLET_UNLOCK_NEEDED_TO_CREATE_ACCOUNT},
@@ -330,6 +332,9 @@ constexpr webui::LocalizedString kLocalizedStrings[] = {
      IDS_BRAVE_WALLET_WATCH_LIST_COINGECKO_ID},
     {"braveWalletIconURL", IDS_BRAVE_WALLET_ICON_URL},
     {"braveWalletAddAsset", IDS_BRAVE_WALLET_ADD_ASSET},
+    {"braveWalletAccountsExport", IDS_BRAVE_WALLET_ACCOUNTS_EXPORT},
+    {"braveWalletAccountsDeposit", IDS_BRAVE_WALLET_ACCOUNTS_DEPOSIT},
+    {"braveWalletAccountsRemove", IDS_BRAVE_WALLET_ACCOUNTS_REMOVE},
     {"braveWalletAccountSettingsDisclaimer",
      IDS_BRAVE_WALLET_ACCOUNT_SETTINGS_DISCLAIMER},
     {"braveWalletFilExportPrivateKeyFormatDescription",
@@ -350,10 +355,8 @@ constexpr webui::LocalizedString kLocalizedStrings[] = {
     {"braveWalletNetworkETH", IDS_BRAVE_WALLET_NETWORK_E_T_H},
     {"braveWalletNetworkMain", IDS_BRAVE_WALLET_NETWORK_MAIN},
     {"braveWalletNetworkTest", IDS_BRAVE_WALLET_NETWORK_TEST},
-    {"braveWalletNetworkRopsten", IDS_BRAVE_WALLET_NETWORK_ROPSTEN},
-    {"braveWalletNetworkKovan", IDS_BRAVE_WALLET_NETWORK_KOVAN},
-    {"braveWalletNetworkRinkeby", IDS_BRAVE_WALLET_NETWORK_RINKEBY},
     {"braveWalletNetworkGoerli", IDS_BRAVE_WALLET_NETWORK_GOERLI},
+    {"braveWalletNetworkSepolia", IDS_BRAVE_WALLET_NETWORK_SEPOLIA},
     {"braveWalletNetworkBinance", IDS_BRAVE_WALLET_NETWORK_BINANCE},
     {"braveWalletNetworkBinanceAbbr", IDS_BRAVE_WALLET_NETWORK_BINANCE_ABBR},
     {"braveWalletNetworkLocalhost", IDS_BRAVE_WALLET_NETWORK_LOCALHOST},
@@ -690,6 +693,50 @@ constexpr webui::LocalizedString kLocalizedStrings[] = {
      IDS_BRAVE_WALLET_ASSET_FILTER_LOW_TO_HIGH},
     {"braveWalletAssetFilterHighToLow",
      IDS_BRAVE_WALLET_ASSET_FILTER_HIGHT_TO_LOW},
+    {"braveWalletAccountFilterAllAccounts",
+     IDS_BRAVE_WALLET_ACCOUNT_FILTER_ALL_ACCOUNTS},
+    {"braveWalletTransactionSubmittedTitle",
+     IDS_BRAVE_WALLET_TRANSACTION_SUBMITTED_TITLE},
+    {"braveWalletTransactionSubmittedDescription",
+     IDS_BRAVE_WALLET_TRANSACTION_SUBMITTED_DESCRIPTION},
+    {"braveWalletTransactionFailedHeaderTitle",
+     IDS_BRAVE_WALLET_TRANSACTION_FAILED_HEADER_TITLE},
+    {"braveWalletTransactionFailedTitle",
+     IDS_BRAVE_WALLET_TRANSACTION_FAILED_TITLE},
+    {"braveWalletTransactionFailedDescription",
+     IDS_BRAVE_WALLET_TRANSACTION_FAILED_DESCRIPTION},
+    {"braveWalletTransactionFailedSwapNextCTA",
+     IDS_BRAVE_WALLET_TRANSACTION_FAILED_SWAP_NEXT_CTA},
+    {"braveWalletTransactionFailedNextCTA",
+     IDS_BRAVE_WALLET_TRANSACTION_FAILED_NEXT_CTA},
+    {"braveWalletTransactionFailedViewErrorCTA",
+     IDS_BRAVE_WALLET_TRANSACTION_FAILED_VIEW_ERROR_CTA},
+    {"braveWalletTransactionFailedReceiptCTA",
+     IDS_BRAVE_WALLET_TRANSACTION_FAILED_RECEIPT_CTA},
+    {"braveWalletTransactionFailedModalTitle",
+     IDS_BRAVE_WALLET_TRANSACTION_FAILED_MODAL_TITLE},
+    {"braveWalletTransactionFailedModalSubtitle",
+     IDS_BRAVE_WALLET_TRANSACTION_FAILED_MODAL_SUBTITLE},
+    {"braveWalletTransactionCompleteSwapHeaderTitle",
+     IDS_BRAVE_WALLET_TRANSACTION_COMPLETE_SWAP_HEADER_TITLE},
+    {"braveWalletTransactionCompleteTitle",
+     IDS_BRAVE_WALLET_TRANSACTION_COMPLETE_TITLE},
+    {"braveWalletTransactionCompleteDescription",
+     IDS_BRAVE_WALLET_TRANSACTION_COMPLETE_DESCRIPTION},
+    {"braveWalletTransactionCompleteReceiptCTA",
+     IDS_BRAVE_WALLET_TRANSACTION_COMPLETE_RECEIPT_CTA},
+    {"braveWalletTransactionConfirmingTitle",
+     IDS_BRAVE_WALLET_TRANSACTION_CONFIRMING_TITLE},
+    {"braveWalletTransactionConfirmingDescription",
+     IDS_BRAVE_WALLET_TRANSACTION_CONFIRMING_DESCRIPTION},
+    {"braveWalletTransactionConfirmingText",
+     IDS_BRAVE_WALLET_TRANSACTION_CONFIRMING_TEXT},
+    {"braveWalletTransactionIntentDappInteraction",
+     IDS_BRAVE_WALLET_TRANSACTION_INTENT_DAPP_INTERACTION},
+    {"braveWalletTransactionIntentSend",
+     IDS_BRAVE_WALLET_TRANSACTION_INTENT_SEND},
+    {"braveWalletTransactionIntentSwap",
+     IDS_BRAVE_WALLET_TRANSACTION_INTENT_SWAP},
     {"braveWalletEditGasLimitError", IDS_BRAVE_WALLET_EDIT_GAS_LIMIT_ERROR},
     {"braveWalletApproveTransaction", IDS_BRAVE_WALLET_APPROVE_TRANSACTION},
     {"braveWalletSolanaSystemProgram", IDS_BRAVE_WALLET_SOLANA_SYSTEM_PROGRAM},
@@ -890,12 +937,17 @@ constexpr webui::LocalizedString kLocalizedStrings[] = {
     {"braveWalletEnsOffchainDontShowAgain",
      IDS_BRAVE_WALLET_ENS_OFFCHAIN_DONT_SHOW_AGAIN},
     {"braveWalletEnsOffchainWarning", IDS_BRAVE_WALLET_ENS_OFFCHAIN_WARNING},
-};
+    {"braveWalletNftsEmptyStateSearch",
+     IDS_BRAVE_WALLET_NFTS_EMPTY_STATE_SEARCH_FILTER},
+    {"braveWalletAddAssetTokenTabTitle",
+     IDS_BRAVE_WALLET_ADD_ASSET_TOKEN_TAB_TITLE},
+    {"braveWalletAddAssetNftTabTitle",
+     IDS_BRAVE_WALLET_ADD_ASSET_NFT_TAB_TITLE}};
 
 // 0x swap constants
-constexpr char kRopstenSwapBaseAPIURL[] = "https://ropsten.api.0x.org/";
+constexpr char kGoerliSwapBaseAPIURL[] = "https://goerli.api.0x.org/";
 // As of 22-02-2022, this address is controlled by @onyb.
-constexpr char kRopstenFeeRecipient[] =
+constexpr char kGoerliFeeRecipient[] =
     "0xa92D461a9a988A7f11ec285d39783A637Fdd6ba4";
 constexpr char kPolygonSwapBaseAPIURL[] = "https://polygon.api.0x.org/";
 constexpr char kBinanceSmartChainSwapBaseAPIURL[] = "https://bsc.api.0x.org/";
@@ -903,6 +955,7 @@ constexpr char kAvalancheSwapBaseAPIURL[] = "https://avalanche.api.0x.org/";
 constexpr char kFantomSwapBaseAPIURL[] = "https://fantom.api.0x.org/";
 constexpr char kCeloSwapBaseAPIURL[] = "https://celo.api.0x.org/";
 constexpr char kOptimismSwapBaseAPIURL[] = "https://optimism.api.0x.org/";
+constexpr char kArbitrumSwapBaseAPIURL[] = "https://arbitrum.api.0x.org/";
 constexpr char kSwapBaseAPIURL[] = "https://api.0x.org/";
 constexpr char kBuyTokenPercentageFee[] = "0.00875";
 constexpr char kFeeRecipient[] = "0xbd9420A98a7Bd6B89765e5715e169481602D9c3d";
@@ -913,7 +966,7 @@ constexpr char kAffiliateAddress[] =
 constexpr char kSolanaSwapBaseAPIURL[] = "https://quote-api.jup.ag/";
 constexpr char kSolanaBuyTokenFeeBps[] = "85";
 constexpr char kSolanaFeeRecipient[] =
-    "8eekKfUAGSJbq3CdA2TmHb8tKuyzd5gtEas3MYAtXzrT";
+    "3NUW8hWoCnLgJwWCVnwdFo2Dsz8bKwLac9A3VgS2jLUQ";
 
 constexpr int64_t kBlockTrackerDefaultTimeInSeconds = 20;
 
@@ -938,6 +991,7 @@ const std::vector<mojom::OnRampCurrency>& GetOnRampCurrenciesList();
 const std::vector<mojom::BlockchainToken>& GetSardineBuyTokens();
 const std::string GetSardineNetworkName(const std::string& chain_id);
 const base::flat_map<std::string, std::string>& GetInfuraChainEndpoints();
+bool HasJupiterFeesForTokenMint(const std::string& mint);
 
 }  // namespace brave_wallet
 
