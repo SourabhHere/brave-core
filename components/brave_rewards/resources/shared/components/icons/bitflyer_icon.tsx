@@ -5,11 +5,11 @@
 import * as React from 'react'
 
 interface Props {
-  white?: boolean
+  color?: 'white' | 'grey'
 }
 
 export function BitflyerIcon (props: Props) {
-  const fill = props.white ? '#fff' : '#468ccb'
+  const fill = props.color === 'grey' ? '#868E96' : props.color === 'white' ? '#fff' : '#468ccb'
   return (
     <svg className='icon' viewBox='-5 0 45.13 37.13'>
       <path fill={fill} d='M0 0h11.23v11.23H0zm12.95 0h11.23v11.23H12.95zM0 12.95h11.23v11.23H0zm0 12.94h11.23v11.23H0z' />

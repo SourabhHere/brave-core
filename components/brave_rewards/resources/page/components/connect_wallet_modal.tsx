@@ -15,11 +15,11 @@ import connectWalletGraphic from '../assets/connect_wallet.svg'
 
 import * as style from './connect_wallet_modal.style'
 
-function renderProviderIcon (provider: string) {
-  switch (provider) {
-    case 'bitflyer': return <BitflyerIcon />
-    case 'gemini': return <GeminiIcon />
-    case 'uphold': return <UpholdIcon />
+function renderProviderIcon (provider: ExternalWalletProvider) {
+  switch (provider.type) {
+    case 'bitflyer': return <BitflyerIcon color={!provider.enabled ? 'grey' : undefined} />
+    case 'gemini': return <GeminiIcon color={!provider.enabled ? 'grey' : undefined} />
+    case 'uphold': return <UpholdIcon color={!provider.enabled ? 'grey' : undefined} />
     default: return null
   }
 }
@@ -137,8 +137,8 @@ export function ConnectWalletModal (props: Props) {
                   onClick={onClick}
                   className={!provider.enabled ? 'greyed-out' : selected ? 'selected' : ''}
                 >
-                  <style.providerButtonIcon>
-                    {renderProviderIcon(provider.type)}
+                  <style.providerButtonIcon className={!provider.enabled ? 'greyed-out' : ''}>
+                    {renderProviderIcon(provider)}
                   </style.providerButtonIcon>
                   <style.providerButtonName>
                     {provider.name}

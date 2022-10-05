@@ -205,8 +205,8 @@ export const providerButtons = styled.div`
     }
 
     &.greyed-out {
-      background: green;
-      color: yellow;
+      background: #F8F9FA;
+      color: #495057;
     }
   }
 
@@ -230,6 +230,10 @@ export const providerButtonIcon = styled.div`
   .icon {
     height: 25px;
     width: auto;
+  }
+
+  &.greyed-out {
+    background: #FFFFFF;
   }
 `
 
