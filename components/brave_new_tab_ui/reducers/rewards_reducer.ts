@@ -86,6 +86,7 @@ const rewardsReducer: Reducer<NewTab.State | undefined> = (state: NewTab.State, 
         rewardsState: {
           ...state.rewardsState,
           rewardsEnabled: preInitialRewardsDataPayload.rewardsEnabled,
+          rewardsUnsupportedRegion: preInitialRewardsDataPayload.rewardsUnsupportedRegion,
           declaredCountry: preInitialRewardsDataPayload.declaredCountry,
           enabledAds: preInitialRewardsDataPayload.enabledAds,
           adsSupported: preInitialRewardsDataPayload.adsSupported,

@@ -7,22 +7,21 @@ import styled from 'styled-components'
 export const root = styled.div`
   height: 100%;
   width: 100%;
-  background-color: var(--brave-palette-white);
-  background-repeat: no-repeat;
-  background-position: 0 0;
-  background-size: auto 220px;
-  border-radius: 16px;
   font-family: var(--brave-font-heading);
   text-align: center;
-  padding: 64px 16px 313px 16px;
 
   .icon {
     height: 80px;
     margin-bottom: 32px;
   }
 
+  a {
+    color: var(--brave-color-brandBat);
+    text-decoration: none;
+  }
+
   @media (max-width: 500px) {
-    border-radius: 4px;
+    border-radius: 8px;
     padding-bottom: 99px;
   }
 `
@@ -34,6 +33,13 @@ export const heading = styled.div`
   margin-bottom: 8px;
 `
 
+export const headingNtp = styled.div`
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 18px;
+  margin-bottom: 8px;
+`
+
 export const content = styled.div`
   font-weight: 400;
   font-size: 14px;
@@ -41,15 +47,23 @@ export const content = styled.div`
   max-width: 325px;
   margin-left: auto;
   margin-right: auto;
+`
 
-  a {
-    color: var(--brave-color-brandBat);
-    text-decoration: none;
-  }
+export const contentNtp = styled.div`
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 18px;
+  max-width: 222px;
+  margin-left: auto;
+  margin-right: auto;
 `
 
 export const spacing = styled.div`
   margin-top: 64px;
+`
+
+export const spacingNtp = styled.div`
+  margin-top: 24px;
 `
 
 export const text = styled.div`

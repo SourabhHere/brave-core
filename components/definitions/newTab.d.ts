@@ -173,6 +173,7 @@ declare namespace NewTab {
 
   export interface RewardsWidgetState {
     rewardsEnabled: boolean
+    rewardsUnsupportedRegion: boolean
     declaredCountry: string
     adsSupported?: boolean
     balance: RewardsBalance

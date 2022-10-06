@@ -25,6 +25,7 @@
 #include "brave/components/brave_adaptive_captcha/buildflags/buildflags.h"
 #include "brave/components/brave_ads/browser/ads_service.h"
 #include "brave/components/brave_rewards/browser/rewards_service.h"
+#include "brave/components/brave_rewards/common/rewards_util.h"
 #include "brave/components/brave_rewards/common/pref_names.h"
 #include "brave/components/l10n/common/locale_util.h"
 #include "chrome/browser/extensions/api/tabs/tabs_constants.h"
@@ -102,8 +103,18 @@ BraveRewardsIsSupportedFunction::~BraveRewardsIsSupportedFunction() = default;
 
 ExtensionFunction::ResponseAction BraveRewardsIsSupportedFunction::Run() {
   Profile* profile = Profile::FromBrowserContext(browser_context());
-  bool is_supported = ::brave_rewards::IsSupportedForProfile(profile);
+  bool is_supported = ::brave_rewards::IsSupportedForProfile(
+      profile, /*ignore_unsupported_regions*/ true);
   return RespondNow(OneArgument(base::Value(is_supported)));
+}
+
+BraveRewardsIsUnsupportedRegionFunction::
+    ~BraveRewardsIsUnsupportedRegionFunction() = default;
+
+ExtensionFunction::ResponseAction
+BraveRewardsIsUnsupportedRegionFunction::Run() {
+  bool is_unsupported_region = ::brave_rewards::IsUnsupportedRegion();
+  return RespondNow(OneArgument(base::Value(is_unsupported_region)));
 }
 
 BraveRewardsGetLocaleFunction::~BraveRewardsGetLocaleFunction() = default;
@@ -1187,7 +1198,8 @@ ExtensionFunction::ResponseAction BraveRewardsGetAdsEnabledFunction::Run() {
   AdsService* ads_service = AdsServiceFactory::GetForProfile(profile);
 
   if (!ads_service) {
-    return RespondNow(Error("Ads service is not initialized"));
+    //return RespondNow(Error("Ads service is not initialized"));
+    return RespondNow(OneArgument(base::Value(false)));
   }
 
   const bool enabled = ads_service->IsEnabled();
@@ -1203,7 +1215,8 @@ BraveRewardsGetAdsAccountStatementFunction::Run() {
   AdsService* ads_service = AdsServiceFactory::GetForProfile(profile);
 
   if (!ads_service) {
-    return RespondNow(Error("Ads service is not initialized"));
+    //return RespondNow(Error("Ads service is not initialized"));
+    Respond(OneArgument(base::Value(false)));
   }
 
   AddRef();  // Balanced in OnGetAdsAccountStatement().
@@ -1240,7 +1253,8 @@ ExtensionFunction::ResponseAction BraveRewardsGetAdsSupportedFunction::Run() {
   AdsService* ads_service = AdsServiceFactory::GetForProfile(profile);
 
   if (!ads_service) {
-    return RespondNow(Error("Ads service is not initialized"));
+    //return RespondNow(Error("Ads service is not initialized"));
+    return RespondNow(OneArgument(base::Value(false)));
   }
 
   const bool supported = ads_service->IsSupportedLocale();
@@ -1253,23 +1267,33 @@ ExtensionFunction::ResponseAction BraveRewardsGetAdsDataFunction::Run() {
   Profile* profile = Profile::FromBrowserContext(browser_context());
   AdsService* ads_service = AdsServiceFactory::GetForProfile(profile);
 
-  if (!ads_service) {
+  /*if (!ads_service) {
     return RespondNow(Error("Ads service is not initialized"));
-  }
+  }*/
 
   base::Value::Dict ads_data;
-  ads_data.Set("adsIsSupported", ads_service->IsSupportedLocale());
-  ads_data.Set("adsEnabled", ads_service->IsEnabled());
-  ads_data.Set(
-      "adsPerHour",
-      static_cast<int>(ads_service->GetMaximumNotificationAdsPerHour()));
-  ads_data.Set(kAdsSubdivisionTargeting,
-               ads_service->GetSubdivisionTargetingCode());
-  ads_data.Set(kAutoDetectedAdsSubdivisionTargeting,
-               ads_service->GetAutoDetectedSubdivisionTargetingCode());
-  ads_data.Set(kShouldAllowAdsSubdivisionTargeting,
-               ads_service->ShouldAllowSubdivisionTargeting());
-  ads_data.Set("adsUIEnabled", true);
+  if (!ads_service) {
+    ads_data.Set("adsIsSupported", false);
+    ads_data.Set("adsEnabled", false);
+    ads_data.Set("adsPerHour", 0);
+    ads_data.Set(kAdsSubdivisionTargeting, "");
+    ads_data.Set(kAutoDetectedAdsSubdivisionTargeting, "");
+    ads_data.Set(kShouldAllowAdsSubdivisionTargeting, false);
+    ads_data.Set("adsUIEnabled", false);
+  } else {
+    ads_data.Set("adsIsSupported", ads_service->IsSupportedLocale());
+    ads_data.Set("adsEnabled", ads_service->IsEnabled());
+    ads_data.Set(
+        "adsPerHour",
+        static_cast<int>(ads_service->GetMaximumNotificationAdsPerHour()));
+    ads_data.Set(kAdsSubdivisionTargeting,
+                 ads_service->GetSubdivisionTargetingCode());
+    ads_data.Set(kAutoDetectedAdsSubdivisionTargeting,
+                 ads_service->GetAutoDetectedSubdivisionTargetingCode());
+    ads_data.Set(kShouldAllowAdsSubdivisionTargeting,
+                 ads_service->ShouldAllowSubdivisionTargeting());
+    ads_data.Set("adsUIEnabled", true);
+  }
 
   ads_data.Set("countryCode", brave_l10n::icu::GetCountryCode());
 

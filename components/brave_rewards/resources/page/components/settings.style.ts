@@ -44,6 +44,12 @@ export const onboarding = styled.div`
 export const unsupportedRegionNotice = styled.div`
   margin: 0 auto;
   width: 600px;
+  background-color: var(--brave-palette-white);
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-size: auto 220px;
+  border-radius: 16px;
+  padding: 64px 16px 313px 16px;
 
   .layout-narrow & {
     width: 100%;

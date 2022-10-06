@@ -19,6 +19,7 @@ import { NewTabLink } from '../new_tab_link'
 import { GrantOverlay } from './grant_overlay'
 import { SelectCountryCard } from './select_country_card'
 import { PaymentStatusView, shouldRenderPendingRewards } from '../payment_status_view'
+import { UnsupportedRegionNotice } from '../unsupported_region_notice'
 
 import * as urls from '../../lib/rewards_urls'
 
@@ -63,6 +64,7 @@ export function RewardsCardHeader () {
 
 interface Props {
   rewardsEnabled: boolean
+  rewardsUnsupportedRegion: boolean
   declaredCountry: string
   adsEnabled: boolean
   adsSupported: boolean
@@ -183,6 +185,17 @@ export function RewardsCard (props: Props) {
     )
   }
 
+  function renderRewardsUnsupportedRegion () {
+    return (
+      <style.root>
+        <RewardsCardHeader />
+        <style.unsupportedRegionNotice>
+          <UnsupportedRegionNotice ntpCard={true} />
+        </style.unsupportedRegionNotice>
+      </style.root>
+    )
+  }
+
   function renderRewardsOptIn () {
     return (
       <style.root>
@@ -233,6 +246,10 @@ export function RewardsCard (props: Props) {
         </style.primaryAction>
       </>
     )
+  }
+
+  if (props.rewardsUnsupportedRegion) {
+    return renderRewardsUnsupportedRegion()
   }
 
   if (!props.rewardsEnabled) {

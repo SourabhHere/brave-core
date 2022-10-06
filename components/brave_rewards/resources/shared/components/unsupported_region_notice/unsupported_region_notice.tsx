@@ -10,39 +10,88 @@ import { BatCrossedIcon } from '../icons/bat_crossed_icon'
 
 import * as style from './unsupported_region_notice.style'
 
-export function UnsupportedRegionNotice () {
+interface Props {
+  ntpCard: boolean
+}
+
+export function UnsupportedRegionNotice (props: Props) {
   const { getString } = React.useContext(LocaleContext)
-  return (
-    <style.root>
-      <BatCrossedIcon />
-      <style.heading>
-        {getString('unsupportedRegionNoticeHeader')}
-      </style.heading>
-      <style.content>
-        <style.text>
-          {getString('unsupportedRegionNoticeSubheader')}
-        </style.text>
-        <style.text>
-          {
-            formatMessage(getString('unsupportedRegionNoticeLearnMore'), {
-              tags: {
-                $1: (content) => (
-                  <NewTabLink key='learn' href='https://support.brave.com/hc/en-us/articles/9053832354957'>
-                    {content}
-                  </NewTabLink>
-                )
-              }
-            })
-          }
-        </style.text>
-        <style.spacing />
+
+  function GetHeading (ntpCard: boolean) {
+    if (ntpCard) {
+      return (
+        <style.headingNtp>
+          {getString('unsupportedRegionNoticeHeader')}
+        </style.headingNtp>
+      )
+    } else {
+      return (
+        <style.heading>
+          {getString('unsupportedRegionNoticeHeader')}
+        </style.heading>
+      )
+    }
+  }
+
+  function GetLink () {
+    return (
+      formatMessage(getString('unsupportedRegionNoticeLearnMore'), {
+        tags: {
+          $1: (content) => (
+            <NewTabLink key='learn' href='https://support.brave.com/hc/en-us/articles/9053832354957'>
+              {content}
+            </NewTabLink>
+          )
+        }
+      })
+    )
+  }
+
+  function GetText () {
+    return (
+      <div>
         <style.text>
           {getString('unsupportedRegionNoticeText1')}
         </style.text>
         <style.text>
           {getString('unsupportedRegionNoticeText2')}
         </style.text>
-      </style.content>
+      </div>
+    )
+  }
+
+  function GetContent (ntpCard: boolean) {
+    if (ntpCard) {
+      return (
+        <style.contentNtp>
+          <style.text>
+            {getString('unsupportedRegionNoticeSubheader')}&nbsp;{GetLink()}
+          </style.text>
+          <style.spacingNtp />
+          {GetText()}
+        </style.contentNtp>
+      )
+    } else {
+      return (
+        <style.content>
+          <style.text>
+            {getString('unsupportedRegionNoticeSubheader')}
+          </style.text>
+          <style.text>
+            {GetLink()}
+          </style.text>
+          <style.spacing />
+          {GetText()}
+        </style.content>
+      )
+    }
+  }
+
+  return (
+    <style.root>
+      {!props.ntpCard && <BatCrossedIcon />}
+      {GetHeading(props.ntpCard)}
+      {GetContent(props.ntpCard)}
     </style.root>
   )
 }

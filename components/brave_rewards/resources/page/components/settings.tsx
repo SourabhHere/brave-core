@@ -145,7 +145,7 @@ export function Settings () {
   const renderedUnsupportedRegionNotice = () => {
     return (
       <style.unsupportedRegionNotice>
-        <UnsupportedRegionNotice />
+        <UnsupportedRegionNotice ntpCard={false} />
       </style.unsupportedRegionNotice>
     )
   }
